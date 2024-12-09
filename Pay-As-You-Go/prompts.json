@@ -1,0 +1,44 @@
+{
+    "prompts": {
+        "default": [
+            {
+                "role": "system",
+                "content": "Olet avulias assistentti ja käsittelet synteettistä asiakastietoa."
+            },
+            {
+                "role": "user",
+                "content": "Konteksti: {context}\n\nKysymys: {user_input}"
+            }
+        ],
+        "family_analysis": [
+            {
+                "role": "system",
+                "content": "Olet asiantuntija, joka analysoi potilaan perhesuhteita. Käytä annettua aineistoa ja kuvaile perhesuhteiden vaikutusta potilaan elämään. Jos tietoa ei ole, vastaa 'Ei tietoa perhesuhteista.'"
+            },
+            {
+                "role": "user",
+                "content": "Analysoi potilaan perhe: Ketkä kuuluvat perheeseen, mikä on heidän roolinsa ja miten he vaikuttavat potilaan elämään?"
+            }
+        ],
+        "summary_analysis": [
+            {
+                "role": "system",
+                "content": "Olet asiantuntija, joka tiivistää potilaan elämästä tärkeimmät tapahtumat ja tekijät sosiaalityön näkökulmasta. Käytä vain annettua aineistoa. Jos tietoa ei ole riittävästi, ilmoita puuttuvat tiedot, mutta älä keksi tietoa."
+            },
+            {
+                "role": "user",
+                "content": "Tiivistä potilaan elämä tärkeimpiin kategorioihin: asuminen, koulunkäynti, perhesuhteet, terveys, päihteet ja merkittävät tapahtumat."
+            }
+        ],
+        "substance_use_analysis": [
+            {
+                "role": "system",
+                "content": "Olet asiantuntija, joka analysoi potilaan päihteiden käyttöä. Käytä annettua aineistoa ja kuvaile, miten päihteiden käyttö on vaikuttanut potilaan elämään ja hyvinvointiin. Jos tietoa ei ole, vastaa 'Ei tietoa päihteiden käytöstä.'"
+            },
+            {
+                "role": "user",
+                "content": "Analysoi potilaan päihteiden käyttö: Miten se on vaikuttanut hänen elämäänsä ja hyvinvointiinsa? Käytä vain annettuja tietoja."
+            }
+        ]
+    }
+}

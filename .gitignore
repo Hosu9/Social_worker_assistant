@@ -1,0 +1,10 @@
+# Suodata Python-virtuaaliympäristöt
+social_env/
+venv/
+*.pyc
+__pycache__/
+
+# Suodata muut yleiset tarpeettomat tiedostot
+.DS_Store
+*.log
+node_modules
