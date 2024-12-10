@@ -65,7 +65,7 @@ def get_openai_response(messages, azure_oai_endpoint, azure_oai_key, azure_oai_d
             engine=azure_oai_deployment,
             messages=messages,
             temperature=0.5,
-            max_tokens=500
+            max_tokens=700
         )
 
         # Tarkista vastaus
