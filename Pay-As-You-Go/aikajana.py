@@ -78,8 +78,28 @@ def get_openai_response(messages, azure_oai_endpoint, azure_oai_key, azure_oai_d
     except Exception as ex:
         return f"Virhe OpenAI:n käsittelyssä: {ex}"
 
-def main():
+def main(question):
     try:
+        
+        # Mock event data for testing
+        """events = [{"age": 8, "date": "2018-01-01", "description": "event 1"},
+                  {"age": 8, "date": "2018-02-01", "description": "event 2"},
+                  {"age": 11, "date": "2020-03-01", "description": "event 3"},
+                  {"age": 11, "date": "2020-04-01", "description": "event 4"},
+                  {"age": 12, "date": "2021-05-01", "description": "event 5"},
+                  {"age": 14, "date": "2023-06-01", "description": "event 6"},
+                  {"age": 14, "date": "2023-07-01", "description": "event 7"},
+                  {"age": 14, "date": "2023-08-01", "description": "event 8"},
+                  {"age": 15, "date": "2024-09-01", "description": "event 9"},
+                  {"age": 15, "date": "2024-10-01", "description": "event 10"}]  # Sample event data for testing
+
+        # Return the mock data in the expected format
+        return {"events": events}
+
+    except Exception as ex:
+        print("Error:", ex)
+        return {"error": str(ex)}"""
+    
         # Lataa ympäristömuuttujat
         load_dotenv()
         azure_oai_endpoint = os.getenv("AZURE_OAI_ENDPOINT")
@@ -124,7 +144,7 @@ def main():
                                      credential=AzureKeyCredential(azure_search_api_key))
 
         # Kysy käyttäjältä
-        user_input = input("Kirjoita kysymyksesi: ").strip()
+        user_input = question
         if not user_input:
             raise ValueError("Kysymys ei voi olla tyhjä.")
 
@@ -142,6 +162,7 @@ def main():
         # Lähetä kysely Azure OpenAI:lle ja tulosta vastaus
         response = get_openai_response(messages, azure_oai_endpoint, azure_oai_key, azure_oai_deployment)
         print("Vastaus:", response)
+        return response
 
     except Exception as ex:
         print("Virhe:", ex)

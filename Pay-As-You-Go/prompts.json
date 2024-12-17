@@ -3,7 +3,8 @@
         "default": [
             {
                 "role": "system",
-                "content": "Olet avulias assistentti ja käsittelet synteettistä asiakastietoa."
+                "content": "Olet avulias assistentti ja käsittelet synteettistä asiakastietoa. Ole hyvä ja vastaa kysymykseen annetun kontekstin perusteella seuraavassa muodossa: {\"events\": [{\"age\": \"age\", \"date\": \"date\", \"description\": \"description\"}]}"
+                
             },
             {
                 "role": "user",

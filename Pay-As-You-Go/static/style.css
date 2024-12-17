@@ -1,0 +1,93 @@
+#timeline {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  width: 90%;
+  margin: 20px auto;
+  border-top: 2px solid #ccc;
+  position: relative;
+  padding-top: 20px;
+}
+
+.age-section {
+  position: relative;
+  text-align: center;
+  flex: 1;
+  min-width: 30px; /* Ensures empty years are narrower */
+  padding: 10px 0;
+  border-right: 1px solid #ddd; /* Adds clear separator */
+  transition: background 0.3s ease-in-out;
+}
+
+.age-section.empty {
+  flex: 0.5; /* Smaller space for empty years */
+  background-color: #f9f9f9; /* Lighter background */
+}
+
+.age-title {
+  font-size: 12px;
+  margin-bottom: 10px;
+  font-weight: bold;
+  color: #555;
+}
+
+.event {
+  position: absolute;
+  top: -20px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 10px;
+  height: 10px;
+  background: #007bff;
+  border-radius: 50%;
+  cursor: pointer;
+}
+
+.event:hover::after {
+  content: attr(data-description);
+  position: absolute;
+  top: -40px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #fff;
+  border: 1px solid #ccc;
+  padding: 5px;
+  font-size: 12px;
+  white-space: nowrap;
+  z-index: 10;
+}
+
+.age-section:last-child {
+  border-right: none; /* Remove border for the last age section */
+}
+
+.event-list {
+  width: 90%;
+  margin: 20px auto;
+  padding-top: 20px;
+}
+
+.event-group {
+  margin-bottom: 20px;
+}
+
+.event-group h2 {
+  margin: 10px 0;
+  font-size: 18px;
+  color: #007bff;
+}
+
+.event-item {
+  margin: 5px 0;
+  padding-left: 20px;
+  position: relative;
+}
+
+.event-item::before {
+  content: '•';
+  position: absolute;
+  left: 0;
+  top: 0;
+  color: #007bff;
+  font-size: 20px;
+}
