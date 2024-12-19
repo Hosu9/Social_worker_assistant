@@ -1,0 +1,89 @@
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: #f9f9f9;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    height: 100vh;
+}
+
+h1 {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.timeline-container {
+    width: 90%;
+    max-width: 1200px;
+    margin: 0 auto;
+    text-align: center;
+}
+
+.timeline {
+    position: relative;
+    height: 8px;
+    background-color: #3b82f6;
+    margin-top: 40px;
+    border-radius: 4px;
+}
+
+.event {
+    position: absolute;
+    bottom: 10px;
+    transform: translateX(-50%);
+    text-align: center;
+}
+
+.event-flag {
+    position: relative;
+    background-color: #fff;
+    border: 2px solid #3b82f6;
+    border-radius: 5px;
+    padding: 8px;
+    margin-bottom: 10px;
+    font-size: 12px;
+    box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.2);
+    margin-top: 20px; /* Add margin-top to create spacing */
+}
+
+.event-dot {
+    width: 16px;
+    height: 16px;
+    background-color: #3b82f6;
+    border-radius: 50%;
+    border: 2px solid #fff;
+    margin: 0 auto;
+    position: relative;
+    top: 20px; /* Pallot elämän viivalla */
+}
+
+.event-flag::before {
+    content: "";
+    position: absolute;
+    width: 2px;
+    height: 20px; /* Adjust the height according to your needs */
+    background-color: #3b82f6;
+    top: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+}
+
+.year-gap {
+    position: absolute;
+    bottom: -20px;
+    font-size: 12px;
+    color: #777;
+    transform: translateX(-50%);
+}
+
+.year {
+    position: absolute;
+    bottom: -40px;
+    font-size: 12px;
+    font-weight: bold;
+    color: #333;
+    transform: translateX(-50%);
+}
