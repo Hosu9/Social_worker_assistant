@@ -3,14 +3,19 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Älykäs Aikajana</title>
+    <title>Potilaan Elämä Aikajana</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
+    <h1>Potilaan Elämä Aikajana</h1>
     <div class="timeline-container">
-        <h1>Potilaan Elämä Aikajana</h1>
         <div id="timeline" class="timeline"></div>
     </div>
+    <div class="search-container">
+        <input type="text" id="search-box" placeholder="Syötä kysymys, esim. 'Kerro lisää tapahtumasta'">
+        <button onclick="search()">Hae</button>
+    </div>
+    <div id="results" class="results-container"></div>
     <script src="script.js"></script>
 </body>
 </html>

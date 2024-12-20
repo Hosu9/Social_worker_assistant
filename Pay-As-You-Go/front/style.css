@@ -1,25 +1,28 @@
 body {
     font-family: Arial, sans-serif;
-    margin: 0;
-    padding: 0;
     background-color: #f9f9f9;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    flex-direction: column;
-    height: 100vh;
+    text-align: center;
+}
+.timeline-container { margin: 20px auto; }
+.timeline { position: relative; height: 8px; background-color: #3b82f6; margin: 20px; border-radius: 4px; }
+.event { position: relative; margin: 10px; }
+.event-flag { background: #fff; border: 2px solid #3b82f6; padding: 8px; margin-top: 10px; }
+.search-container { margin-top: 20px; }
+.results-container { margin: 20px auto; padding: 10px; background: #e9ecef; border: 1px solid #ccc; border-radius: 5px; 
 }
 
 h1 {
-    text-align: center;
-    margin-bottom: 20px;
+    margin-top: 20px;
+    font-size: 24px;
+    color: #333;
 }
 
+/* Aikajana-kontti */
 .timeline-container {
     width: 90%;
     max-width: 1200px;
-    margin: 0 auto;
-    text-align: center;
+    margin: 20px auto;
+    position: relative;
 }
 
 .timeline {
@@ -30,60 +33,75 @@ h1 {
     border-radius: 4px;
 }
 
+/* Tapahtuman elementit */
 .event {
     position: absolute;
-    bottom: 10px;
     transform: translateX(-50%);
+    bottom: -30px;
     text-align: center;
 }
 
 .event-flag {
-    position: relative;
     background-color: #fff;
     border: 2px solid #3b82f6;
     border-radius: 5px;
     padding: 8px;
-    margin-bottom: 10px;
     font-size: 12px;
+    font-weight: bold;
     box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.2);
-    margin-top: 20px; /* Add margin-top to create spacing */
+    margin-bottom: 10px;
 }
 
 .event-dot {
-    width: 16px;
-    height: 16px;
+    width: 12px;
+    height: 12px;
     background-color: #3b82f6;
     border-radius: 50%;
-    border: 2px solid #fff;
     margin: 0 auto;
     position: relative;
-    top: 20px; /* Pallot elämän viivalla */
 }
 
-.event-flag::before {
-    content: "";
-    position: absolute;
-    width: 2px;
-    height: 20px; /* Adjust the height according to your needs */
+/* Haku-kenttä */
+.search-container {
+    margin-top: 30px;
+    margin-bottom: 20px;
+}
+
+#search-box {
+    width: 60%;
+    max-width: 500px;
+    padding: 10px;
+    font-size: 16px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+
+button {
+    padding: 10px 15px;
+    font-size: 16px;
+    color: #fff;
     background-color: #3b82f6;
-    top: 100%;
-    left: 50%;
-    transform: translateX(-50%);
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    margin-left: 10px;
 }
 
-.year-gap {
-    position: absolute;
-    bottom: -20px;
-    font-size: 12px;
-    color: #777;
-    transform: translateX(-50%);
+button:hover {
+    background-color: #2563eb;
 }
 
-.year {
-    position: absolute;
-    bottom: -40px;
-    font-size: 12px;
-    font-weight: bold;
+/* Tulokset */
+.results-container {
+    width: 60%;
+    max-width: 600px;
+    margin: 20px auto;
+    padding: 15px;
+    background-color: #e9ecef;
+    border: 1px solid #ced4da;
+    border-radius: 5px;
+    text-align: left;
+    font-size: 16px;
     color: #333;
-    transform: translateX(-50%);
+    box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.1);
 }

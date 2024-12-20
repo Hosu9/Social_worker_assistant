@@ -1,164 +1,151 @@
 import os
 import json
-import numpy as np
 from dotenv import load_dotenv
 import openai
-from azure.search.documents import SearchClient
+from azure.storage.blob import BlobServiceClient
 from azure.core.credentials import AzureKeyCredential
-from flask import Flask, jsonify, request, send_from_directory
+from azure.search.documents import SearchClient
 
-app = Flask(__name__, static_folder="front", static_url_path="")
+# Funktio promottien lataamiseksi
+def load_prompts(file_path):
+    with open(file_path, 'r', encoding='utf-8') as file:
+        return json.load(file)["prompts"]
 
-# Funktio OpenAI Embeddings -vektorien saamiseksi
-def get_embedding(text, azure_oai_endpoint, azure_oai_key, azure_oai_deployment):
-    openai.api_type = "azure"
-    openai.api_key = azure_oai_key
-    openai.api_base = azure_oai_endpoint
-    openai.api_version = "2024-08-01-preview"
+# Funktio oikean promptin hakemiseen
+def get_prompt(prompts, prompt_type, context, user_input):
+    if prompt_type not in prompts:
+        raise ValueError(f"Prompt type '{prompt_type}' ei löydy.")
+    prompt = prompts[prompt_type]
+    for message in prompt:
+        message['content'] = message['content'].replace("{context}", context).replace("{user_input}", user_input)
+    return prompt
 
-    response = openai.Embedding.create(
-        engine=azure_oai_deployment,
-        input=text
-    )
-    return response['data'][0]['embedding']
+# Haku tulosten käsittely selkeäksi vastaukseksi
+def process_search_results(results):
+    search_content = []
+    for result in results:
+        chunk_content = result.get("chunk", result.get("content"))
+        if chunk_content:
+            search_content.append(chunk_content)
+    if not search_content:
+        return "Valitettavasti ei löytynyt tietoa tästä aiheesta."
 
-# Funktio indeksoidun datan hakemiseen Azure Cognitive Searchista
-def search_indexed_data(query, azure_search_endpoint, azure_search_api_key, azure_search_index):
-    search_client = SearchClient(endpoint=azure_search_endpoint,
-                                 index_name=azure_search_index,
-                                 credential=AzureKeyCredential(azure_search_api_key))
+    # Poimi vain relevantit osiot JSON:sta
+    parsed_content = []
+    for content in search_content:
+        try:
+            data = json.loads(content)  # Yritetään muuntaa JSON-objektiksi
+            if isinstance(data, dict):
+                # Poimitaan vain selkeät, relevanteimmat kentät
+                description = data.get("kuvaus", "")
+                participants = data.get("osallistujat", "")
+                if description:
+                    parsed_content.append(description)
+                if participants:
+                    parsed_content.append(f"Osallistujat: {participants}")
+            else:
+                parsed_content.append(content)  # Jos ei JSON, käytetään raakatekstiä
+        except json.JSONDecodeError:
+            parsed_content.append(content)  # Ei JSON, palautetaan raakateksti
 
-    vector = get_embedding(query, os.getenv("AZURE_OAI_ENDPOINT"),
-                           os.getenv("AZURE_OAI_KEY"), os.getenv("AZURE_OAI_DEPLOYMENT"))
+    # Muotoile vastaukset selkeiksi lauseiksi
+    return ' '.join(parsed_content).replace("\n", " ").strip()
 
-    results = search_client.search(
-        search_text=None,
-        vector=vector,
-        top_k=5,
-        vector_fields="content_vector"
-    )
-    return [result.get("content") for result in results]
-
-# Funktio GPT-vastausten tuottamiseen RAG-pohjaisesti
-def get_rag_response(context, user_input, azure_oai_endpoint, azure_oai_key, azure_oai_deployment):
-    messages = [
-        {"role": "system", "content": "Käytä vain annettua aineistoa vastataksesi käyttäjän kysymykseen. Älä keksi mitään tietoa."},
-        {"role": "user", "content": f"Konteksti: {context}\n\nKysymys: {user_input}"}
-    ]
-
-    response = openai.ChatCompletion.create(
-        engine=azure_oai_deployment,
-        messages=messages,
-        temperature=0.0,
-        max_tokens=700
-    )
-    return response['choices'][0]['message']['content'].strip()
-
-# Funktio OpenAI GPT-vastausten tuottamiseen
+# OpenAI-vastausten käsittely
 def get_openai_response(messages, azure_oai_endpoint, azure_oai_key, azure_oai_deployment):
-    openai.api_type = "azure"
-    openai.api_key = azure_oai_key
-    openai.api_base = azure_oai_endpoint
-    openai.api_version = "2024-08-01-preview"
-
-    response = openai.ChatCompletion.create(
-        engine=azure_oai_deployment,
-        messages=messages,
-        temperature=0.7,
-        max_tokens=700
-    )
-    return response['choices'][0]['message']['content'].strip()
-
-# Reitti etusivulle
-@app.route("/")
-def serve_index():
-    return send_from_directory("front", "index.html")
-
-# Aikajanan tiedon haku ja palautus automaattisesti GPT:ltä
-@app.route("/api/timeline", methods=["POST"])
-def generate_timeline():
     try:
+        # OpenAI asetukset
+        openai.api_type = "azure"
+        openai.api_key = azure_oai_key
+        openai.api_base = azure_oai_endpoint
+        openai.api_version = "2024-08-01-preview"
+
+        # Lähetä kysely Azure OpenAI:lle
+        response = openai.ChatCompletion.create(
+            engine=azure_oai_deployment,
+            messages=messages,
+            temperature=0.5,
+            max_tokens=700
+        )
+
+        # Tarkista vastaus
+        if not response or 'choices' not in response or not response['choices']:
+            return "Azure OpenAI ei palauttanut vastausta."
+
+        # Palauta vastaus selkeänä tekstinä
+        return response['choices'][0]['message']['content'].strip()
+
+    except Exception as ex:
+        return f"Virhe OpenAI:n käsittelyssä: {ex}"
+
+def main():
+    try:
+        # Lataa ympäristömuuttujat
         load_dotenv()
         azure_oai_endpoint = os.getenv("AZURE_OAI_ENDPOINT")
         azure_oai_key = os.getenv("AZURE_OAI_KEY")
         azure_oai_deployment = os.getenv("AZURE_OAI_DEPLOYMENT")
-
-        system_prompt = "Anna 10 merkittävää elämäntapahtumaa potilaasta selkein otsikoin."
-        messages = [
-            {"role": "system", "content": system_prompt},
-            {"role": "user", "content": "Potilaan merkittävät elämänmuutokset"}
-        ]
-
-        response = get_openai_response(messages, azure_oai_endpoint, azure_oai_key, azure_oai_deployment)
-        timeline_events = response.split("\n")
-
-        return jsonify({"timeline": timeline_events})
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
-
-# RAG-pohjainen reitti indeksoidun datan hakemiseen ja GPT-vastauksen tuottamiseen
-@app.route("/api/rag", methods=["POST"])
-def rag_response():
-    try:
-        load_dotenv()
-        azure_oai_endpoint = os.getenv("AZURE_OAI_ENDPOINT")
-        azure_oai_key = os.getenv("AZURE_OAI_KEY")
-        azure_oai_deployment = os.getenv("AZURE_OAI_DEPLOYMENT")
+        azure_storage_account_name = os.getenv("AZURE_STORAGE_ACCOUNT_NAME")
+        azure_storage_account_key = os.getenv("AZURE_STORAGE_ACCOUNT_KEY")
+        azure_storage_container_name = os.getenv("AZURE_STORAGE_CONTAINER_NAME")
+        azure_storage_blob_name = os.getenv("AZURE_STORAGE_BLOB_NAME")
         azure_search_index = os.getenv("AZURE_SEARCH_INDEX")
         azure_search_endpoint = os.getenv("AZURE_SEARCH_ENDPOINT")
         azure_search_api_key = os.getenv("AZURE_SEARCH_API_KEY")
 
-        user_input = request.json.get("query", "")
+        # Tarkista ympäristömuuttujien olemassaolo
+        if not all([azure_oai_endpoint, azure_oai_key, azure_oai_deployment,
+                    azure_storage_account_name, azure_storage_account_key,
+                    azure_storage_container_name, azure_storage_blob_name,
+                    azure_search_index, azure_search_endpoint, azure_search_api_key]):
+            raise ValueError("Yksi tai useampi ympäristömuuttuja puuttuu.")
+
+        # Lataa promptit
+        prompt_file_path = "prompts.json"
+        if not os.path.exists(prompt_file_path):
+            raise FileNotFoundError(f"Prompt-tiedostoa '{prompt_file_path}' ei löytynyt.")
+        prompts = load_prompts(prompt_file_path)
+
+        # Yhdistä Azure Blob Storageen ja lataa data
+        blob_service_client = BlobServiceClient(
+            account_url=f"https://{azure_storage_account_name}.blob.core.windows.net",
+            credential=azure_storage_account_key
+        )
+        blob_client = blob_service_client.get_blob_client(
+            container=azure_storage_container_name,
+            blob=azure_storage_blob_name
+        )
+        blob_data = blob_client.download_blob().readall().decode('utf-8')
+        print("Blob data retrieved successfully.")
+
+        # Yhdistä Azure Cognitive Searchiin
+        search_client = SearchClient(endpoint=azure_search_endpoint,
+                                     index_name=azure_search_index,
+                                     credential=AzureKeyCredential(azure_search_api_key))
+
+        # Kysy käyttäjältä
+        user_input = input("Anna kysymys: ")
         if not user_input:
-            return jsonify({"error": "Kysymys ei voi olla tyhjä"}), 400
+            raise ValueError("Kysymys ei voi olla tyhjä.")
 
-        search_results = search_indexed_data(user_input, azure_search_endpoint, azure_search_api_key,
-                                             azure_search_index)
+        # Tee haku Azure Cognitive Searchissa
+        search_query = {"queryType": "simple", "search": user_input, "searchMode": "all"}
+        results = search_client.search(search_query)
 
-        if not search_results:
-            return jsonify({"response": "Indeksoidusta datasta ei löytynyt osumia käyttäjän kysymykseen."})
+        # Käsittele hakutulokset ja rakenna selkeä vastaus
+        context = process_search_results(results)
 
-        context = "\n".join(search_results)
-        response = get_rag_response(context, user_input, azure_oai_endpoint, azure_oai_key, azure_oai_deployment)
+        # Valitse promptityyppi ja muodosta viestit
+        prompt_type = "default"
+        messages = get_prompt(prompts, prompt_type, context, user_input)
 
-        return jsonify({"response": response, "context": search_results})
-
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
-
-def load_prompts(file_path):
-    with open(file_path, "r", encoding="utf-8") as file:
-        return json.load(file)
-
-# Funktio yhdistetyn kehotteen luomiseen
-def get_combined_prompt(prompts, context, user_input):
-    messages = [{"role": "system", "content": prompts["system"]}]
-    if context:
-        messages.append({"role": "system", "content": context})
-    messages.append({"role": "user", "content": user_input})
-    return messages
-
-# Chat-reitti GPT:n kanssa keskusteluun
-@app.route("/api/chat", methods=["POST"])
-def chat():
-    try:
-        load_dotenv()
-        azure_oai_endpoint = os.getenv("AZURE_OAI_ENDPOINT")
-        azure_oai_key = os.getenv("AZURE_OAI_KEY")
-        azure_oai_deployment = os.getenv("AZURE_OAI_DEPLOYMENT")
-
-        user_input = request.json.get("query", "")
-        if not user_input:
-            return jsonify({"error": "Kysymys ei voi olla tyhjä"}), 400
-
-        prompts = load_prompts("prompts.json")
-        messages = get_combined_prompt(prompts, "", user_input)
-
+        # Lähetä kysely Azure OpenAI:lle ja tulosta vastaus
         response = get_openai_response(messages, azure_oai_endpoint, azure_oai_key, azure_oai_deployment)
-        return jsonify({"response": response})
+        print("Vastaus:", response)
+        return response
 
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
+    except Exception as ex:
+        print("Virhe:", ex)
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    main()
