@@ -2,7 +2,6 @@ import os
 import json
 from dotenv import load_dotenv
 import openai
-from azure.storage.blob import BlobServiceClient
 from azure.core.credentials import AzureKeyCredential
 from azure.search.documents import SearchClient
 
@@ -78,6 +77,62 @@ def get_openai_response(messages, azure_oai_endpoint, azure_oai_key, azure_oai_d
     except Exception as ex:
         return f"Virhe OpenAI:n käsittelyssä: {ex}"
 
+def get_significant_events():
+    load_dotenv()
+    azure_search_index = os.getenv("AZURE_SEARCH_INDEX")
+    azure_search_endpoint = os.getenv("AZURE_SEARCH_ENDPOINT")
+    azure_search_api_key = os.getenv("AZURE_SEARCH_API_KEY")
+
+    search_client = SearchClient(endpoint=azure_search_endpoint,
+                                 index_name=azure_search_index,
+                                 credential=AzureKeyCredential(azure_search_api_key))
+
+    search_query = {"queryType": "simple", "search": "*", "top": 10, "orderby": "year desc"}
+    results = search_client.search(search_query)
+
+    events = []
+    for result in results:
+        event = {
+            "year": result.get("year", "N/A"),
+            "description": result.get("description", "No description available")
+        }
+        events.append(event)
+        print(f"Processed event: {event}")  # Print each processed event
+
+    return events
+
+def chat_with_llm(question):
+    load_dotenv()
+    azure_oai_endpoint = os.getenv("AZURE_OAI_ENDPOINT")
+    azure_oai_key = os.getenv("AZURE_OAI_KEY")
+    azure_oai_deployment = os.getenv("AZURE_OAI_DEPLOYMENT")
+    azure_search_index = os.getenv("AZURE_SEARCH_INDEX")
+    azure_search_endpoint = os.getenv("AZURE_SEARCH_ENDPOINT")
+    azure_search_api_key = os.getenv("AZURE_SEARCH_API_KEY")
+
+    # Lataa promptit
+    prompt_file_path = "prompts.json"
+    if not os.path.exists(prompt_file_path):
+        raise FileNotFoundError(f"Prompt-tiedostoa '{prompt_file_path}' ei löytynyt.")
+    prompts = load_prompts(prompt_file_path)
+
+    # Tee haku Azure Cognitive Searchissa
+    search_client = SearchClient(endpoint=azure_search_endpoint,
+                                 index_name=azure_search_index,
+                                 credential=AzureKeyCredential(azure_search_api_key))
+    search_query = {"queryType": "simple", "search": question, "searchMode": "all"}
+    results = search_client.search(search_query)
+
+    # Käsittele hakutulokset ja rakenna selkeä vastaus
+    context = process_search_results(results)
+
+    # Valitse promptityyppi ja muodosta viestit
+    prompt_type = "default"
+    messages = get_prompt(prompts, prompt_type, context, question)
+
+    # Lähetä kysely Azure OpenAI:lle ja palauta vastaus
+    return get_openai_response(messages, azure_oai_endpoint, azure_oai_key, azure_oai_deployment)
+
 def main():
     try:
         # Lataa ympäristömuuttujat
@@ -85,18 +140,12 @@ def main():
         azure_oai_endpoint = os.getenv("AZURE_OAI_ENDPOINT")
         azure_oai_key = os.getenv("AZURE_OAI_KEY")
         azure_oai_deployment = os.getenv("AZURE_OAI_DEPLOYMENT")
-        azure_storage_account_name = os.getenv("AZURE_STORAGE_ACCOUNT_NAME")
-        azure_storage_account_key = os.getenv("AZURE_STORAGE_ACCOUNT_KEY")
-        azure_storage_container_name = os.getenv("AZURE_STORAGE_CONTAINER_NAME")
-        azure_storage_blob_name = os.getenv("AZURE_STORAGE_BLOB_NAME")
         azure_search_index = os.getenv("AZURE_SEARCH_INDEX")
         azure_search_endpoint = os.getenv("AZURE_SEARCH_ENDPOINT")
         azure_search_api_key = os.getenv("AZURE_SEARCH_API_KEY")
 
         # Tarkista ympäristömuuttujien olemassaolo
         if not all([azure_oai_endpoint, azure_oai_key, azure_oai_deployment,
-                    azure_storage_account_name, azure_storage_account_key,
-                    azure_storage_container_name, azure_storage_blob_name,
                     azure_search_index, azure_search_endpoint, azure_search_api_key]):
             raise ValueError("Yksi tai useampi ympäristömuuttuja puuttuu.")
 
@@ -105,18 +154,6 @@ def main():
         if not os.path.exists(prompt_file_path):
             raise FileNotFoundError(f"Prompt-tiedostoa '{prompt_file_path}' ei löytynyt.")
         prompts = load_prompts(prompt_file_path)
-
-        # Yhdistä Azure Blob Storageen ja lataa data
-        blob_service_client = BlobServiceClient(
-            account_url=f"https://{azure_storage_account_name}.blob.core.windows.net",
-            credential=azure_storage_account_key
-        )
-        blob_client = blob_service_client.get_blob_client(
-            container=azure_storage_container_name,
-            blob=azure_storage_blob_name
-        )
-        blob_data = blob_client.download_blob().readall().decode('utf-8')
-        print("Blob data retrieved successfully.")
 
         # Yhdistä Azure Cognitive Searchiin
         search_client = SearchClient(endpoint=azure_search_endpoint,

@@ -14,8 +14,7 @@ def serve_static_files(path):
 @app.route('/api/timeline', methods=['POST'])
 def get_timeline_events():
     try:
-        # Generoi 10 merkittävää elämäntapahtumaa käyttämällä LLM:ää
-        events = aikajana.get_significant_events()  # Tämä funktio kutsuu LLM:ää aikajana.py:ssä
+        events = aikajana.get_significant_events()
         return jsonify({"timeline": events})
     except Exception as e:
         print(f"Error generating timeline: {str(e)}")
@@ -30,7 +29,6 @@ def search():
         if not question:
             return jsonify({"error": "No question provided"}), 400
 
-        # Kutsu aikajana.py:n chat-toimintoa käyttäjän kysymyksen käsittelemiseksi
         response = aikajana.chat_with_llm(question)
         return jsonify({"answer": response})
     except Exception as e:
