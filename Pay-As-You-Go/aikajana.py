@@ -78,30 +78,48 @@ def get_openai_response(messages, azure_oai_endpoint, azure_oai_key, azure_oai_d
         return f"Virhe OpenAI:n käsittelyssä: {ex}"
 
 def get_significant_events():
+    # Lataa ympäristömuuttujat
     load_dotenv()
     azure_search_index = os.getenv("AZURE_SEARCH_INDEX")
     azure_search_endpoint = os.getenv("AZURE_SEARCH_ENDPOINT")
     azure_search_api_key = os.getenv("AZURE_SEARCH_API_KEY")
 
-    search_client = SearchClient(endpoint=azure_search_endpoint,
-                                 index_name=azure_search_index,
-                                 credential=AzureKeyCredential(azure_search_api_key))
-
-    search_query = {"queryType": "simple", "search": "*", "top": 10, "orderby": "year desc"}
+    # Yhdistä Azure Cognitive Searchiin
+    search_client = SearchClient(
+        endpoint=azure_search_endpoint,
+        index_name=azure_search_index,
+        credential=AzureKeyCredential(azure_search_api_key)
+    )
+    
+    # Määritä haku
+    search_query = {
+        "queryType": "simple",
+        "search": "*",
+        "select": "ilmoittamispaiva, asiasisalto, title",
+        "top": 10,
+        "orderby": "ilmoittamispaiva desc"
+    }
     results = search_client.search(search_query)
-
+    # Prosessoi tulokset
     events = []
+    print("Raw Azure results:")  # Tulosta raakatulokset debuggausta varten
     for result in results:
-        event = {
-            "year": result.get("year", "N/A"),
-            "description": result.get("description", "No description available")
-        }
-        events.append(event)
-        print(f"Processed event: {event}")  # Print each processed event
 
+        # Poimi kentät
+        ilmoittamispaiva = result.get("chunk") or "N/A"
+        print(ilmoittamispaiva)
+        year = ilmoittamispaiva.split("-")[0] if ilmoittamispaiva != "N/A" else "N/A"
+        description = result.get("title") or result.get("kuvaus") or "No description available"
+        print("Description:", description)
+        # Lisää tapahtuma listaan
+        if year != "N/A" and description != "No description available":
+            events.append({"year": year, "description": description})
+
+    print("Processed events:", events)  # Tulosta käsitellyt tapahtumat
     return events
 
-def chat_with_llm(question):
+
+# def chat_with_llm(question):
     load_dotenv()
     azure_oai_endpoint = os.getenv("AZURE_OAI_ENDPOINT")
     azure_oai_key = os.getenv("AZURE_OAI_KEY")
@@ -133,7 +151,7 @@ def chat_with_llm(question):
     # Lähetä kysely Azure OpenAI:lle ja palauta vastaus
     return get_openai_response(messages, azure_oai_endpoint, azure_oai_key, azure_oai_deployment)
 
-def main():
+# def main():
     try:
         # Lataa ympäristömuuttujat
         load_dotenv()
@@ -185,4 +203,4 @@ def main():
         print("Virhe:", ex)
 
 if __name__ == "__main__":
-    main()
+    get_significant_events()
