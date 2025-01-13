@@ -77,49 +77,7 @@ def get_openai_response(messages, azure_oai_endpoint, azure_oai_key, azure_oai_d
     except Exception as ex:
         return f"Virhe OpenAI:n käsittelyssä: {ex}"
 
-def get_significant_events():
-    # Lataa ympäristömuuttujat
-    load_dotenv()
-    azure_search_index = os.getenv("AZURE_SEARCH_INDEX")
-    azure_search_endpoint = os.getenv("AZURE_SEARCH_ENDPOINT")
-    azure_search_api_key = os.getenv("AZURE_SEARCH_API_KEY")
-
-    # Yhdistä Azure Cognitive Searchiin
-    search_client = SearchClient(
-        endpoint=azure_search_endpoint,
-        index_name=azure_search_index,
-        credential=AzureKeyCredential(azure_search_api_key)
-    )
-    
-    # Määritä haku
-    search_query = {
-        "queryType": "simple",
-        "search": "*",
-        "select": "ilmoittamispaiva, asiasisalto, title",
-        "top": 10,
-        "orderby": "ilmoittamispaiva desc"
-    }
-    results = search_client.search(search_query)
-    # Prosessoi tulokset
-    events = []
-    print("Raw Azure results:")  # Tulosta raakatulokset debuggausta varten
-    for result in results:
-
-        # Poimi kentät
-        ilmoittamispaiva = result.get("chunk") or "N/A"
-        print(ilmoittamispaiva)
-        year = ilmoittamispaiva.split("-")[0] if ilmoittamispaiva != "N/A" else "N/A"
-        description = result.get("title") or result.get("kuvaus") or "No description available"
-        print("Description:", description)
-        # Lisää tapahtuma listaan
-        if year != "N/A" and description != "No description available":
-            events.append({"year": year, "description": description})
-
-    print("Processed events:", events)  # Tulosta käsitellyt tapahtumat
-    return events
-
-
-# def chat_with_llm(question):
+def chat_with_llm(question):
     load_dotenv()
     azure_oai_endpoint = os.getenv("AZURE_OAI_ENDPOINT")
     azure_oai_key = os.getenv("AZURE_OAI_KEY")
@@ -127,31 +85,26 @@ def get_significant_events():
     azure_search_index = os.getenv("AZURE_SEARCH_INDEX")
     azure_search_endpoint = os.getenv("AZURE_SEARCH_ENDPOINT")
     azure_search_api_key = os.getenv("AZURE_SEARCH_API_KEY")
-
     # Lataa promptit
     prompt_file_path = "prompts.json"
     if not os.path.exists(prompt_file_path):
         raise FileNotFoundError(f"Prompt-tiedostoa '{prompt_file_path}' ei löytynyt.")
     prompts = load_prompts(prompt_file_path)
-
     # Tee haku Azure Cognitive Searchissa
     search_client = SearchClient(endpoint=azure_search_endpoint,
                                  index_name=azure_search_index,
                                  credential=AzureKeyCredential(azure_search_api_key))
     search_query = {"queryType": "simple", "search": question, "searchMode": "all"}
     results = search_client.search(search_query)
-
     # Käsittele hakutulokset ja rakenna selkeä vastaus
     context = process_search_results(results)
-
     # Valitse promptityyppi ja muodosta viestit
     prompt_type = "default"
     messages = get_prompt(prompts, prompt_type, context, question)
-
     # Lähetä kysely Azure OpenAI:lle ja palauta vastaus
     return get_openai_response(messages, azure_oai_endpoint, azure_oai_key, azure_oai_deployment)
 
-# def main():
+def get_significant_events():
     try:
         # Lataa ympäristömuuttujat
         load_dotenv()
@@ -179,7 +132,7 @@ def get_significant_events():
                                      credential=AzureKeyCredential(azure_search_api_key))
 
         # Kysy käyttäjältä
-        user_input = input("Anna kysymys: ")
+        user_input = "Kerro Emmasta 10 merkitsevää elämäntapahtumaa"
         if not user_input:
             raise ValueError("Kysymys ei voi olla tyhjä.")
 
@@ -204,3 +157,4 @@ def get_significant_events():
 
 if __name__ == "__main__":
     get_significant_events()
+    chat_with_llm(question=input("Kysymys: "))

@@ -1,45 +1,44 @@
 {
-    "prompts": {
-      "significant_events_analysis": [
-        {
-          "role": "system",
-          "content": "Olet asiantuntija, joka analysoi annettua dataa merkittävien elämäntapahtumien löytämiseksi. Etsi dataan perustuen tärkeimmät tapahtumat, ja tiivistä ne helposti ymmärrettävään muotoon. Käytä kenttiä 'ilmoittamispaiva', 'asiasisalto' ja 'kuvaus'. Palauta vain 10 tärkeintä tapahtumaa aikajanan visualisointia varten."
-        },
-        {
-          "role": "user",
-          "content": "Analysoi data ja palauta seuraavassa muodossa: [{\"year\": <vuosi>, \"description\": <kuvaus>}]. Käytä annettua dataa."
-        }
-      ],
-      "categorized_analysis": [
-        {
-          "role": "system",
-          "content": "Olet asiantuntija, joka jäsentää annetun datan kategorioittain: asuminen, koulunkäynti, terveys ja merkittävät tapahtumat. Käytä annettua dataa ja tiivistä jokainen kategoria yhteen pääkohtaan."
-        },
-        {
-          "role": "user",
-          "content": "Tiivistä data kategorioittain seuraavaan muotoon: [{\"category\": <kategoria>, \"description\": <tiivistelmä>}]."
-        }
-      ],
-      "data_validation": [
-        {
-          "role": "system",
-          "content": "Olet datan laadunvarmistaja. Tarkista, sisältääkö annettu data kentät 'ilmoittamispaiva', 'asiasisalto' ja 'kuvaus'. Jos tiedot puuttuvat, ilmoita puutteet."
-        },
-        {
-          "role": "user",
-          "content": "Analysoi data ja palauta: [{\"field\": <kentän nimi>, \"status\": <tilanne ('puuttuu' tai 'olemassa')>}]."
-        }
-      ],
-      "contextual_analysis": [
-        {
-          "role": "system",
-          "content": "Olet asiantuntija, joka tarjoaa sosiaalityön näkökulmasta syvempää analyysiä annetuista tapahtumista. Käytä 'asiasisalto'- ja 'kuvaus'-kenttiä ymmärtääksesi tapahtumien vaikutukset."
-        },
-        {
-          "role": "user",
-          "content": "Kuvaile tapahtuman konteksti ja sen merkitys seuraavassa muodossa: [{\"year\": <vuosi>, \"description\": <tulkittu kuvaus>}]."
-        }
-      ]
-    }
+  "prompts": {
+    "default": [
+      {
+        "role": "system",
+        "content": "Olet avulias assistentti ja käsittelet suomeksi vain ja ainoastaan synteettistä asiakastietoa. Ole hyvä ja vastaa kysymykseen annetun kontekstin perusteella seuraavassa muodossa: [{\"age\": \"age\", \"date\": \"date\", \"description\": \"description\"}]. Käytä vain annettua dataa, älä keksi omia tietoja. Jos tietoa ei ole, vastaa 'Ei tietoa.'"
+      },
+      {
+        "role": "user",
+        "content": "Konteksti: {context}\n\nKysymys: {user_input}"
+      }
+    ],
+    "family_analysis": [
+      {
+        "role": "system",
+        "content": "Olet asiantuntija, joka analysoi potilaan perhesuhteita. Käytä annettua aineistoa ja kuvaile perhesuhteiden vaikutusta potilaan elämään. Jos tietoa ei ole, vastaa 'Ei tietoa perhesuhteista.' Käytä vain annettua dataa, älä keksi omia tietoja."
+      },
+      {
+        "role": "user",
+        "content": "Analysoi potilaan perhe: Ketkä kuuluvat perheeseen, mikä on heidän roolinsa ja miten he vaikuttavat potilaan elämään?"
+      }
+    ],
+    "summary_analysis": [
+      {
+        "role": "system",
+        "content": "Olet asiantuntija, joka tiivistää potilaan elämästä tärkeimmät tapahtumat ja tekijät sosiaalityön näkökulmasta. Käytä vain annettua aineistoa. Jos tietoa ei ole riittävästi, ilmoita puuttuvat tiedot, mutta älä keksi tietoa."
+      },
+      {
+        "role": "user",
+        "content": "Tiivistä potilaan elämä tärkeimpiin kategorioihin: asuminen, koulunkäynti, perhesuhteet, terveys, päihteet ja merkittävät tapahtumat."
+      }
+    ],
+    "substance_use_analysis": [
+      {
+        "role": "system",
+        "content": "Olet asiantuntija, joka analysoi potilaan päihteiden käyttöä. Käytä annettua aineistoa ja kuvaile, miten päihteiden käyttö on vaikuttanut potilaan elämään ja hyvinvointiin. Jos tietoa ei ole, vastaa 'Ei tietoa päihteiden käytöstä.' Käytä vain annettua dataa, älä keksi omia tietoja."
+      },
+      {
+        "role": "user",
+        "content": "Analysoi potilaan päihteiden käyttö: Miten se on vaikuttanut hänen elämäänsä ja hyvinvointiinsa? Käytä vain annettuja tietoja."
+      }
+    ]
   }
-  
+}

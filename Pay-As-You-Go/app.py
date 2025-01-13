@@ -14,7 +14,7 @@ def serve_static_files(path):
 @app.route('/api/timeline', methods=['POST'])
 def get_timeline_events():
     try:
-        events = aikajana.get_significant_events()
+        events = aikajana.get_significant_events("Kerro Emmasta 10 merkitsevää elämäntapahtumaa")
         return jsonify({"timeline": events})
     except Exception as e:
         print(f"Error generating timeline: {str(e)}")
@@ -35,5 +35,13 @@ def search():
         print(f"Error processing search: {str(e)}")
         return jsonify({"error": str(e)}), 500
 
+def main():
+    try:
+        events = aikajana.get_significant_events("Kerro Emmasta 10 merkitsevää elämäntapahtumaa")
+        print("Generated timeline events:", events)
+    except Exception as e:
+        print(f"Error generating timeline: {str(e)}")
+
 if __name__ == '__main__':
+    main()
     app.run(debug=True)
