@@ -1,9 +1,9 @@
 import os
 import json
-from dotenv import load_dotenv
 import openai
-from azure.core.credentials import AzureKeyCredential
+from dotenv import load_dotenv
 from azure.search.documents import SearchClient
+from azure.core.credentials import AzureKeyCredential
 
 # Funktio promottien lataamiseksi
 def load_prompts(file_path):
@@ -36,7 +36,7 @@ def process_search_results(results):
             data = json.loads(content)  # Yritetään muuntaa JSON-objektiksi
             if isinstance(data, dict):
                 # Poimitaan vain selkeät, relevanteimmat kentät
-                description = data.get("kuvaus", "")
+                description = data.get("asiasisalto", "")
                 participants = data.get("osallistujat", "")
                 if description:
                     parsed_content.append(description)
@@ -46,12 +46,16 @@ def process_search_results(results):
                 parsed_content.append(content)  # Jos ei JSON, käytetään raakatekstiä
         except json.JSONDecodeError:
             parsed_content.append(content)  # Ei JSON, palautetaan raakateksti
-
+    print("Parsed content:", parsed_content)
     # Muotoile vastaukset selkeiksi lauseiksi
     return ' '.join(parsed_content).replace("\n", " ").strip()
 
-# OpenAI-vastausten käsittely
-def get_openai_response(messages, azure_oai_endpoint, azure_oai_key, azure_oai_deployment):
+
+
+def get_vector_from_openai(input_text, azure_oai_endpoint, azure_oai_key, azure_oai_embedding_deployment):
+    """
+    Luo vektorin käyttäjän tekstisyötteestä Azure OpenAI -palvelun avulla.
+    """
     try:
         # OpenAI asetukset
         openai.api_type = "azure"
@@ -60,23 +64,145 @@ def get_openai_response(messages, azure_oai_endpoint, azure_oai_key, azure_oai_d
         openai.api_version = "2024-08-01-preview"
 
         # Lähetä kysely Azure OpenAI:lle
-        response = openai.ChatCompletion.create(
-            engine=azure_oai_deployment,
-            messages=messages,
-            temperature=0.5,
-            max_tokens=700
+        response = openai.Embedding.create(
+            engine=azure_oai_embedding_deployment,
+            input=input_text
         )
 
         # Tarkista vastaus
-        if not response or 'choices' not in response or not response['choices']:
-            return "Azure OpenAI ei palauttanut vastausta."
+        if not response or 'data' not in response or not response['data']:
+            raise ValueError("Azure OpenAI ei palauttanut vektoria.")
 
-        # Palauta vastaus selkeänä tekstinä
-        return response['choices'][0]['message']['content'].strip()
+        # Palauta vektori
+        return response['data'][0]['embedding']
 
     except Exception as ex:
-        return f"Virhe OpenAI:n käsittelyssä: {ex}"
+        raise ValueError(f"Virhe OpenAI:n käsittelyssä: {ex}")
 
+def get_significant_events(input_text):
+    """
+    Hakee Azure Search -indeksistä 10 merkitsevintä dokumenttia annetun syötteen perusteella.
+    """
+    load_dotenv()
+    azure_search_index = os.getenv("AZURE_SEARCH_INDEX")
+    azure_search_endpoint = os.getenv("AZURE_SEARCH_ENDPOINT")
+    azure_search_api_key = os.getenv("AZURE_SEARCH_API_KEY")
+    azure_oai_endpoint = os.getenv("AZURE_OAI_ENDPOINT")
+    azure_oai_deployment = os.getenv("AZURE_OAI_DEPLOYMENT")
+    azure_oai_key = os.getenv("AZURE_OAI_KEY")
+    azure_oai_embedding_deployment = os.getenv("AZURE_OAI_EMBEDDING_DEPLOYMENT")
+
+    search_client = SearchClient(
+        endpoint=azure_search_endpoint,
+        index_name=azure_search_index,
+        credential=AzureKeyCredential(azure_search_api_key)
+    )
+
+    # Luo vektori käyttäjän syötteestä
+    vector = get_vector_from_openai(input_text, azure_oai_endpoint, azure_oai_key, azure_oai_embedding_deployment)
+
+    # Määritä haku
+    search_query = {
+        "search": "*",
+        "count": True,
+        "vectorQueries": [
+            {
+                "field": "text_vector",
+                "vector": vector,
+                "k": 10
+            }
+        ],
+        "select": [
+            "documents.metaCustom.asiakirjan_metadata.alkuperainen_luontiaika",
+            "documents.metaCustom.asiakirjan_metadata.lisakentat"
+        ]  
+    }
+
+    try:
+        results = search_client.search(search_query)
+    except Exception as ex:
+        raise ValueError(f"Virhe haussa: {ex}")
+
+    # Käsittele hakutulokset
+    events = []
+    for result in results:
+        documents = result.get("documents", [])
+        for document in documents:
+            original_creation_time = document.get("metaCustom", {}).get("asiakirjan_metadata", {}).get("alkuperainen_luontiaika", "N/A")
+            additional_field_value = "N/A"
+            for field in document.get("metaCustom", {}).get("asiakirjan_metadata", {}).get("lisakentat", []):
+                if "value" in field:
+                    additional_field_value = field["value"]
+                    break
+            events.append({
+                "original_creation_time": original_creation_time,
+                "additional_field_value": additional_field_value
+            })
+            if len(events) >= 10:
+                break
+        if len(events) >= 10:
+            break
+
+    return events
+
+def generate_answer_with_gpt(input_text, events, azure_oai_endpoint, azure_oai_key, azure_oai_deployment):
+    """
+    Luo vastaus GPT-mallilla käyttäen haettuja tapahtumia ja käyttäjän kysymystä.
+    """
+    try:
+        # OpenAI asetukset
+        openai.api_type = "azure"
+        openai.api_key = azure_oai_key
+        openai.api_base = azure_oai_endpoint
+        openai.api_version = "2024-08-01-preview"
+
+        # Muodosta konteksti dokumenteista
+        context = "\n".join([
+            f"- Päivämäärä: {event['original_creation_time']}, Tapahtuma: {event['additional_field_value']}"
+            for event in events
+        ])
+
+        # Luo viestit chat-komennolle
+        messages = [
+            {"role": "system", "content": "Olet avulias assistentti ja käsittelet suomeksi vain ja ainoastaan synteettistä asiakastietoa. Älä keksi omia tietoja. Jos tietoa ei ole, vastaa 'Ei tietoa'."},
+            {"role": "user", "content": f"Konteksti:\n{context}\n\nKysymys: {input_text}\n\nVastaa mahdollisimman tarkasti."}
+        ]
+
+        # Lähetä kysely GPT:lle
+        response = openai.ChatCompletion.create(
+            engine=azure_oai_deployment,
+            messages=messages,
+            max_tokens=700,
+            temperature=0.2
+        )
+
+        return response.choices[0].message['content'].strip()
+
+    except Exception as ex:
+        raise ValueError(f"Virhe OpenAI:n käsittelyssä: {ex}")
+
+def main():
+    input_text = "Kerro Emmasta 10 merkitsevää elämäntapahtumaa"
+    
+    # Hae merkitsevät tapahtumat
+    events = get_significant_events(input_text)
+    if not events:
+        print("Ei löydetty tapahtumia.")
+        return
+
+    # Luo vastaus GPT:llä
+    azure_oai_endpoint = os.getenv("AZURE_OAI_ENDPOINT")
+    azure_oai_key = os.getenv("AZURE_OAI_KEY")
+    azure_oai_deployment = os.getenv("AZURE_OAI_DEPLOYMENT")  # GPT-mallin nimi
+    answer = generate_answer_with_gpt(input_text, events, azure_oai_endpoint, azure_oai_key, azure_oai_deployment)
+    
+    print("\nGeneroitu vastaus:")
+    print(answer)
+
+if __name__ == "__main__":
+    main()
+
+# Chatbox with LLM
 def chat_with_llm(question):
     load_dotenv()
     azure_oai_endpoint = os.getenv("AZURE_OAI_ENDPOINT")
@@ -102,9 +228,9 @@ def chat_with_llm(question):
     prompt_type = "default"
     messages = get_prompt(prompts, prompt_type, context, question)
     # Lähetä kysely Azure OpenAI:lle ja palauta vastaus
-    return get_openai_response(messages, azure_oai_endpoint, azure_oai_key, azure_oai_deployment)
+    return get_vector_from_openai(messages, azure_oai_endpoint, azure_oai_key, azure_oai_deployment)
 
-def get_significant_events():
+# def main():
     try:
         # Lataa ympäristömuuttujat
         load_dotenv()
@@ -148,13 +274,14 @@ def get_significant_events():
         messages = get_prompt(prompts, prompt_type, context, user_input)
 
         # Lähetä kysely Azure OpenAI:lle ja tulosta vastaus
-        response = get_openai_response(messages, azure_oai_endpoint, azure_oai_key, azure_oai_deployment)
+        response = get_vector_from_openai(messages, azure_oai_endpoint, azure_oai_key, azure_oai_deployment)
         print("Vastaus:", response)
         return response
 
     except Exception as ex:
         print("Virhe:", ex)
 
-if __name__ == "__main__":
-    get_significant_events()
-    chat_with_llm(question=input("Kysymys: "))
+# if __name__ == "__main__":
+    # main()
+    # chat_with_llm(question=input("Kysymys: "))
+    # get_significant_events()
