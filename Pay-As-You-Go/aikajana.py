@@ -78,17 +78,14 @@ def get_vector_from_openai(input_text, azure_oai_endpoint, azure_oai_key, azure_
 
     except Exception as ex:
         raise ValueError(f"Virhe OpenAI:n käsittelyssä: {ex}")
-
+    
+# Hakee 10 merkitsevää tapahtumaa
 def get_significant_events(input_text):
-    """
-    Hakee Azure Search -indeksistä 10 merkitsevintä dokumenttia annetun syötteen perusteella.
-    """
     load_dotenv()
     azure_search_index = os.getenv("AZURE_SEARCH_INDEX")
     azure_search_endpoint = os.getenv("AZURE_SEARCH_ENDPOINT")
     azure_search_api_key = os.getenv("AZURE_SEARCH_API_KEY")
     azure_oai_endpoint = os.getenv("AZURE_OAI_ENDPOINT")
-    azure_oai_deployment = os.getenv("AZURE_OAI_DEPLOYMENT")
     azure_oai_key = os.getenv("AZURE_OAI_KEY")
     azure_oai_embedding_deployment = os.getenv("AZURE_OAI_EMBEDDING_DEPLOYMENT")
 
@@ -104,17 +101,19 @@ def get_significant_events(input_text):
     # Määritä haku
     search_query = {
         "search": "*",
+        "select": "documents",
         "count": True,
         "vectorQueries": [
             {
                 "field": "text_vector",
+                "kind": "text",
                 "vector": vector,
                 "k": 10
             }
         ],
         "select": [
             "documents.metaCustom.asiakirjan_metadata.alkuperainen_luontiaika",
-            "documents.metaCustom.asiakirjan_metadata.lisakentat"
+            "documents.metaCustom.asiakirjan_metadata.lisakentat.value"
         ]  
     }
 
@@ -122,33 +121,25 @@ def get_significant_events(input_text):
         results = search_client.search(search_query)
     except Exception as ex:
         raise ValueError(f"Virhe haussa: {ex}")
-
+        
     # Käsittele hakutulokset
-    events = []
-    for result in results:
-        documents = result.get("documents", [])
-        for document in documents:
-            original_creation_time = document.get("metaCustom", {}).get("asiakirjan_metadata", {}).get("alkuperainen_luontiaika", "N/A")
-            additional_field_value = "N/A"
-            for field in document.get("metaCustom", {}).get("asiakirjan_metadata", {}).get("lisakentat", []):
-                if "value" in field:
-                    additional_field_value = field["value"]
-                    break
-            events.append({
-                "original_creation_time": original_creation_time,
-                "additional_field_value": additional_field_value
-            })
-            if len(events) >= 10:
-                break
-        if len(events) >= 10:
-            break
+    events = [
+        {
+            "original_creation_time": document.get("metaCustom", {}).get("asiakirjan_metadata", {}).get("alkuperainen_luontiaika", "N/A"),
+            "additional_field_value": next(
+                (field.get("value", "N/A") for field in document.get("metaCustom", {}).get("asiakirjan_metadata", {}).get("lisakentat", []) if "value" in field),
+                "N/A"
+            )
+        }
+        for result in results
+        for document in result.get("documents", [])
+    ]
 
+    # Tulosta tulokset debuggausta varten
+    # print("Lopulliset tapahtumat:", events)
     return events
 
 def generate_answer_with_gpt(input_text, events, azure_oai_endpoint, azure_oai_key, azure_oai_deployment):
-    """
-    Luo vastaus GPT-mallilla käyttäen haettuja tapahtumia ja käyttäjän kysymystä.
-    """
     try:
         # OpenAI asetukset
         openai.api_type = "azure"
@@ -162,10 +153,20 @@ def generate_answer_with_gpt(input_text, events, azure_oai_endpoint, azure_oai_k
             for event in events
         ])
 
-        # Luo viestit chat-komennolle
         messages = [
-            {"role": "system", "content": "Olet avulias assistentti ja käsittelet suomeksi vain ja ainoastaan synteettistä asiakastietoa. Älä keksi omia tietoja. Jos tietoa ei ole, vastaa 'Ei tietoa'."},
-            {"role": "user", "content": f"Konteksti:\n{context}\n\nKysymys: {input_text}\n\nVastaa mahdollisimman tarkasti."}
+            {
+            "role": "system",
+            "content": (
+                "Olet avulias ja tarkka assistentti, joka käsittelee suomeksi vain ja ainoastaan annettua asiakastietoa. "
+                "Älä keksi omia tietoja. Määrittele mikä on merkitsevää elämäntapahtumaa. "
+                "Muotoile vastausta kolmella sanalla. "
+                "Laajenna datan hakua siten, että saamme joka vuodelta vähintään yhden merkitsevän elämäntapahtuman."
+            )
+            },
+            {
+            "role": "user",
+            "content": f"Konteksti:\n{context}\n\nKysymys: {input_text}\n\nVastaa mahdollisimman tarkasti."
+            }
         ]
 
         # Lähetä kysely GPT:lle
