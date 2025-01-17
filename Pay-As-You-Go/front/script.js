@@ -12,7 +12,7 @@ document.addEventListener("DOMContentLoaded", () => {
     .then(data => {
         if (data.timeline) {
             console.log("Fetched timeline data:", data.timeline);  // Log fetched data
-            const events = data.timeline.slice(0, 10); // Varmistetaan, että otetaan vain 10 ensimmäistä
+            const events = data.timeline.slice(0, 10); // Ensure only the first 10 events are taken
             const sortedEvents = events.sort((a, b) => a.year - b.year);
     
             sortedEvents.forEach((event, index) => {
@@ -24,7 +24,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 timelineContainer.appendChild(yearContainer);
             });
     
-            // Lisää aikajanan horisontaalinen viiva
+            // Add horizontal line to the timeline
             const horizontalLine = createHorizontalLine();
             timelineContainer.appendChild(horizontalLine);
         } else {

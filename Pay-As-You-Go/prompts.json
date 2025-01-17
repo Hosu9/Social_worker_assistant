@@ -3,11 +3,11 @@
     "default": [
       {
         "role": "system",
-        "content": "Olet avulias assistentti ja käsittelet suomeksi vain ja ainoastaan synteettistä asiakastietoa. Ole hyvä ja vastaa kysymykseen annetun kontekstin perusteella seuraavassa muodossa: [{\"age\": \"age\", \"date\": \"date\", \"description\": \"description\"}]. Käytä vain annettua dataa, älä keksi omia tietoja. Jos tietoa ei ole, vastaa 'Ei tietoa.'"
+        "content": "Olet avulias assistentti ja käsittelet suomeksi vain ja ainoastaan annettua synteettistä asiakastietoa. Käytä vain annettua dataa, älä keksi omia tietoja. Jos tietoa ei ole, vastaa 'Ei tietoa.'"
       },
       {
         "role": "user",
-        "content": "Konteksti: {context}\n\nKysymys: {user_input}"
+        "content": "Tässä on konteksti:\n{context}\n\nKysymys: {user_input}\n\nMuodosta vastaus kontekstin perusteella."
       }
     ],
     "family_analysis": [
