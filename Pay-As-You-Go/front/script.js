@@ -13,17 +13,22 @@ document.addEventListener("DOMContentLoaded", () => {
         if (data.timeline) {
             console.log("Fetched timeline data:", data.timeline);  // Log fetched data
             const events = data.timeline.slice(0, 10); // Ensure only the first 10 events are taken
-            const sortedEvents = events.sort((a, b) => a.year - b.year);
-    
+            const sortedEvents = events.sort((a, b) => {
+                const yearA = new Date(a.date).getFullYear();
+                const yearB = new Date(b.date).getFullYear();
+                return yearA - yearB;
+            });
+
             sortedEvents.forEach((event, index) => {
                 console.log("Processing event:", event);  // Log each event being processed
-                const yearContainer = createYearContainer(event.year);
+                const year = new Date(event.date).getFullYear();
+                const yearContainer = createYearContainer(year);
                 const timelineDiv = createTimelineDiv([event], index % 2 === 0);
-    
+
                 yearContainer.appendChild(timelineDiv);
                 timelineContainer.appendChild(yearContainer);
             });
-    
+
             // Add horizontal line to the timeline
             const horizontalLine = createHorizontalLine();
             timelineContainer.appendChild(horizontalLine);
@@ -32,9 +37,8 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     })
     .catch(error => console.error('Error fetching timeline data:', error));
-    
 
-    // Chat functionality
+    // Chat functionality (remains unchanged)
     const chatContainer = document.createElement("div");
     chatContainer.className = "chat-container";
 
@@ -83,16 +87,6 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 /**
- * Adds a gap indicator for years with a gap in between.
- */
-function addGapIndicator(container, gapYears) {
-    const gapIndicator = document.createElement("div");
-    gapIndicator.className = "gap-indicator";
-    gapIndicator.innerText = `${gapYears} vuotta väliin`;
-    container.appendChild(gapIndicator);
-}
-
-/**
  * Creates and returns a container for each year with its events.
  */
 function createYearContainer(year) {
@@ -116,8 +110,9 @@ function createTimelineDiv(events, isRed) {
 
     // Create markers for each event
     events.forEach((event) => {
-        const eventDot = createEventDot(event, isRed);
-        const flag = createEventFlag(event, isRed);
+        const year = new Date(event.date).getFullYear();
+        const eventDot = createEventDot(event, isRed, year);
+        const flag = createEventFlag(event, isRed, year);
 
         timelineDiv.appendChild(eventDot);
         timelineDiv.appendChild(flag);
@@ -131,14 +126,14 @@ function createTimelineDiv(events, isRed) {
 /**
  * Creates a dot representing an event on the timeline.
  */
-function createEventDot(event, isRed) {
+function createEventDot(event, isRed, year) {
     const eventDot = document.createElement("div");
     eventDot.className = "event-dot";
-    eventDot.title = `${event.description} (Vuosi: ${event.year})`;
+    eventDot.title = `${event.description} (Vuosi: ${year})`;
 
     const dotColor = isRed ? "#FF5733" : "#3357FF";
     eventDot.style.backgroundColor = dotColor;
-    eventDot.style.left = `${(event.year % 12) * 8.33}%`; // Adjust position based on year
+    eventDot.style.left = `${(year % 12) * 8.33}%`; // Adjust position based on year
 
     // Create the line above the dot
     const eventLine = document.createElement("div");
@@ -153,14 +148,14 @@ function createEventDot(event, isRed) {
 /**
  * Creates the flag for an event, which includes a title and description.
  */
-function createEventFlag(event, isRed) {
+function createEventFlag(event, isRed, year) {
     const flag = document.createElement("div");
     flag.className = "flag";
     flag.style.setProperty('--border-color', isRed ? "#FF5733" : "#3357FF");
 
     const title = document.createElement("div");
     title.className = "flag-title";
-    title.innerText = `Vuosi: ${event.year}`;
+    title.innerText = `Vuosi: ${year}`;
 
     const description = document.createElement("div");
     description.className = "flag-description";
@@ -169,7 +164,7 @@ function createEventFlag(event, isRed) {
     flag.appendChild(title);
     flag.appendChild(description);
 
-    flag.style.left = `${(event.year % 12) * 8.33}%`; // Adjust position based on year
+    flag.style.left = `${(year % 12) * 8.33}%`; // Adjust position based on year
     return flag;
 }
 

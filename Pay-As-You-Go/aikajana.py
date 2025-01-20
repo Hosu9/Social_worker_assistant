@@ -112,6 +112,7 @@ def generate_answer_with_gpt(input_text, events, azure_oai_endpoint, azure_oai_k
                 "Älä keksi omia tietoja. Määrittele mikä on merkitsevää elämäntapahtumaa. "
                 "Muotoile vastausta kolmella sanalla. "
                 "Laajenna datan hakua siten, että saamme joka vuodelta vähintään yhden merkitsevän elämäntapahtuman."
+                "Vastaa kysymykseen annetun kontekstin perusteella seuraavassa muodossa: {\"timeline\": [{\"date\": \"Päivämäärä\", \"description\": \"Tapahtuma\"}"
             )
             },
             {
@@ -134,7 +135,7 @@ def generate_answer_with_gpt(input_text, events, azure_oai_endpoint, azure_oai_k
         raise ValueError(f"Virhe OpenAI:n käsittelyssä: {ex}")
 
 def main():
-    input_text = "Kerro Emmasta 10 merkitsevää elämäntapahtumaa"
+    """input_text = "Kerro Emmasta 10 merkitsevää elämäntapahtumaa"
     
     # Hae merkitsevät tapahtumat
     events = get_significant_events(input_text)
@@ -147,8 +148,21 @@ def main():
     azure_oai_key = os.getenv("AZURE_OAI_KEY")
     azure_oai_deployment = os.getenv("AZURE_OAI_DEPLOYMENT")  # GPT-mallin nimi
     answer = generate_answer_with_gpt(input_text, events, azure_oai_endpoint, azure_oai_key, azure_oai_deployment)
-    
+    """
+    answer = {"timeline": [
+  {"date": "2021-03-15", "description": "Emma ja sisarukset sijoitettiin kiireellisesti."},
+  {"date": "2021-03-26", "description": "Sijoituksen yksityiskohdat sovittiin neuvottelussa."},
+  {"date": "2021-07-22", "description": "Sijoitusjakson päättyminen ja perheen kotiinpaluu."},
+  {"date": "2022-03-10", "description": "Tehostetun perhetyön lopettaminen."},
+  {"date": "2023-05-01", "description": "Äidin itsemurhayritys, uusi sijoitus."},
+  {"date": "2023-08-20", "description": "Sijoitusjakson päättymisestä ja kotiinpaluusta yhteenveto."},
+  {"date": "2024-01-10", "description": "Verkostoneuvottelu tehostetun perhetyön jatkosta."},
+  {"date": "2024-04-15", "description": "Ilmoitus Emman heikentyneistä kouluarvosanoista."},
+  {"date": "2024-05-01", "description": "Emma aloitti uuden harrastuksen, kirjallisuuden."},
+  {"date": "2024-12-10", "description": "Emma masentunut, lopetti kirjallisuuskerhon."}
+  ]}
     print(answer)
+    return answer
 
 if __name__ == "__main__":
     main()

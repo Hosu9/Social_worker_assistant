@@ -15,15 +15,8 @@ def serve_static_files(path):
 @app.route('/api/timeline', methods=['POST'])
 def get_timeline_output():
     try:
-        data = request.json
-        input_text = data.get('input_text', '')
-
-        if not input_text:
-            return jsonify({"error": "No input text provided"}), 400
-
-        # Suoritetaan aikajana.py:n main-funktio ja palautetaan sen tulos
-        output = aikajana.main(input_text)
-        return jsonify({"output": output})
+        output = aikajana.main()
+        return output
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
