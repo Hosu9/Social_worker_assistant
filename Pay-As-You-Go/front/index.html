@@ -3,16 +3,30 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Interaktiivinen Aikajana</title>
+    <title>Yhdistetyt Aikajanat</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
+    <div class="top-bar">
+        <div class="button-container">
+            <button onclick="generateTimeline()">Generoi Tapahtumat</button>
+            <button onclick="generateSpecificTimeline()">Pahimmat tapahtumat</button>
+        </div>
+        <label class="switch">
+            <input type="checkbox" id="dark-mode-toggle" onclick="toggleDarkMode()">
+            <span class="slider round"></span>
+        </label>
+    </div>
     <div class="container">
-        <h1 id="title">Potilaan Elämä Aikajana</h1>
-        <div id="timeline-container" class="timeline-container"></div>
+        <h1>aikajana</h1>
+        <div id="timeline-container" class="timeline-wrapper"></div>
     </div>
     <div class="chat-container">
         <div id="chat-box" class="chat-box"></div>
+        <div class="chat-input">
+            <textarea id="chat-input" placeholder="Type your message..."></textarea>
+            <button id="chat-send">Send</button>
+        </div>
     </div>
     <script src="script.js"></script>
 </body>
