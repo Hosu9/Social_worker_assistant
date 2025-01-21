@@ -11,27 +11,30 @@ document.addEventListener("DOMContentLoaded", () => {
     .then(response => response.json())
     .then(data => {
         if (data.timeline) {
-            console.log("Fetched timeline data:", data.timeline);  // Log fetched data
-            const events = data.timeline.slice(0, 10); // Ensure only the first 10 events are taken
-            const sortedEvents = events.sort((a, b) => a.year - b.year);
-    
-            sortedEvents.forEach((event, index) => {
-                console.log("Processing event:", event);  // Log each event being processed
-                const yearContainer = createYearContainer(event.year);
-                const timelineDiv = createTimelineDiv([event], index % 2 === 0);
-    
-                yearContainer.appendChild(timelineDiv);
+            const events = data.timeline.slice(0, 10); // Limit to 10 events
+            const answers = data.answers; // Get answers
+            
+            // Järjestetään ja näytetään tapahtumat
+            events.forEach((event, index) => {
+                const year = event.Vuosi;
+                const description = event.Kertomus;
+                const answer = answers[index] || ""; // Get corresponding answer
+
+                const yearContainer = createYearContainer(year);
+                const eventFlag = createEventFlag({ year, description: `${description}\n${answer}` }, false);
+
+                yearContainer.appendChild(eventFlag);
                 timelineContainer.appendChild(yearContainer);
             });
-    
-            // Add horizontal line to the timeline
+
+            // Lisää vaakasuora viiva
             const horizontalLine = createHorizontalLine();
             timelineContainer.appendChild(horizontalLine);
         } else {
-            console.error("No timeline data found:", data);
+            console.error("No timeline data available:", data);
         }
     })
-    .catch(error => console.error('Error fetching timeline data:', error));
+    .catch(error => console.error("Error fetching timeline data:", error));
     
 
     // Chat functionality
@@ -39,11 +42,11 @@ document.addEventListener("DOMContentLoaded", () => {
     chatContainer.className = "chat-container";
 
     chatContainer.innerHTML = `
-        <div class="chat-header">Chat with Azure LLM</div>
+        <div class="chat-header">Kysy lisää potilaasta</div>
         <div class="chat-messages"></div>
         <div class="chat-input">
-            <textarea placeholder="Type your message..."></textarea>
-            <button>Send</button>
+            <textarea placeholder="Kirjoita kysymys..."></textarea>
+            <button>Lähetä</button>
         </div>
     `;
 

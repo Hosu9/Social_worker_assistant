@@ -42,7 +42,6 @@ button {
     align-items: center;
     gap: 20px;
     margin-top: 80px; /* Move timeline up */
-    overflow-x: auto; /* Allow horizontal scrolling */
     position: relative;
 }
 
@@ -142,7 +141,6 @@ button {
     max-width: 1200px;
     margin: 0 auto;
     text-align: center;
-    overflow-x: auto; /* Allow horizontal scrolling */
     position: relative;
 }
 
