@@ -29,6 +29,9 @@ body {
 .container {
     text-align: center;
     width: 100%;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
 }
 
 button {
@@ -51,12 +54,38 @@ button {
     align-items: center;
     width: 120px;
     position: relative;
-    margin-right: 20px; /* Add space between year containers */
+    margin-right: 20px; /* Add space between year containers horizontally */
+    margin-bottom: 0; /* Remove vertical space */
 }
 
 .year {
     font-weight: bold;
-    margin-bottom: 10px;
+    margin-top: 10px; /* Adjust margin */
+    color: #555;
+    position: absolute;
+    top: 110%; /* Move below the horizontal line */
+    left: 50%;
+    transform: translateX(-50%);
+}
+
+.year-dot {
+    position: absolute;
+    top: 50%; /* Center the dots vertically */
+    transform: translateY(-50%);
+    width: 10px;
+    height: 10px;
+    background-color: #e31212;
+    border-radius: 50%;
+    z-index: 2;
+    left: 50%; /* Align with year */
+    transform: translateX(-50%);
+}
+
+.year-container .year,
+.year-container .year-dot,
+.year-container .flag::after {
+    left: 50%; /* Align with year */
+    transform: translateX(-50%);
 }
 
 .event-dot {
@@ -122,6 +151,19 @@ button {
     transform: translateY(-100%);
     z-index: 1;
     white-space: nowrap; /* Prevent text wrapping */
+    left: 45%; /* Move slightly to the left */
+    transform: translateX(-50%) translateY(-100%);
+}
+
+.flag::after {
+    content: "";
+    position: absolute;
+    width: 2px;
+    height: 60px; /* Adjust height as needed */
+    background-color: var(--border-color);
+    top: 100%;
+    left: 45%; /* Move slightly to the left */
+    transform: translateX(-50%);
 }
 
 .flag-title {
@@ -133,10 +175,19 @@ button {
     font-size: 12px;
 }
 
+.event:nth-child(odd) .flag {
+    margin-top: 60px; /* Adjust margin */
+}
+
+.event:nth-child(even) .flag {
+    margin-top: -60px; /* Adjust margin */
+}
+
 .timeline-container {
     display: flex;
     align-items: center;
     justify-content: center;
+    flex-wrap: wrap; /* Enable wrapping */
     width: 95%;
     max-width: 1200px;
     margin: 0 auto;
@@ -201,8 +252,8 @@ button {
 }
 
 .chat-container {
-    width: 60%; /* Increase width */
-    max-height: 300px; /* Increase height */
+    width: 50%; /* Decrease width */
+    height: 400px; /* Decrease height */
     background-color: #fff;
     border: 3px solid #ccc;
     border-radius: 20px;
@@ -210,8 +261,10 @@ button {
     display: flex;
     flex-direction: column;
     overflow: hidden;
-    margin-top: 70px; /* Move chat box down */
+    position: relative;
+    top: 200px; /* Move chat box down */
     font-family: 'Roboto', sans-serif;
+    overflow-y: auto;
 }
 
 .chat-header {
@@ -236,6 +289,7 @@ button {
     padding: 10px;
     border-radius: 10px;
     max-width: 80%;
+    overflow-y: auto;
 }
 
 .chat-message.user {
@@ -274,4 +328,17 @@ button {
 
 .chat-input button:hover {
     background-color: #2563eb;
+}
+
+.gap-indicator {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 12px;
+    color: #333;
+    background-color: #fff;
+    padding: 2px 5px;
+    border-radius: 3px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+    z-index: 1;
 }

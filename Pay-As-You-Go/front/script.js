@@ -11,20 +11,54 @@ document.addEventListener("DOMContentLoaded", () => {
     .then(response => response.json())
     .then(data => {
         if (data.timeline) {
-            const events = data.timeline.slice(0, 10); // Limit to 10 events
-            const answers = data.answers; // Get answers
+            const events = data.timeline; // Get timeline events
             
+            let previousDate = null;
+            let previousYearContainer = null;
+
             // Järjestetään ja näytetään tapahtumat
             events.forEach((event, index) => {
-                const year = event.Vuosi;
+                const dateParts = event.Vuosi.includes('-') 
+                ? event.Vuosi.split('-') 
+                : event.Vuosi.split('.');
+                const year = parseInt(dateParts[0]);
+                const month = parseInt(dateParts[1]);
+                const day = parseInt(dateParts[2]);
+                const currentDate = new Date(year, month - 1, day);
                 const description = event.Kertomus;
-                const answer = answers[index] || ""; // Get corresponding answer
 
-                const yearContainer = createYearContainer(year);
-                const eventFlag = createEventFlag({ year, description: `${description}\n${answer}` }, false);
+                const yearContainer = createYearContainer(year, month, day);
+                const eventFlag = createEventFlag({ year, description }, index % 2 === 0);
 
                 yearContainer.appendChild(eventFlag);
                 timelineContainer.appendChild(yearContainer);
+
+                // Add year dot
+                const yearDot = createYearDot(year, month, day);
+                yearContainer.appendChild(yearDot); // Append dot to year container
+
+                // Add gap indicator if there is a previous date
+                if (previousDate !== null) {
+                    const gapTime = currentDate - previousDate;
+                    const gapYears = gapTime / (1000 * 60 * 60 * 24 * 365);
+                    const gapMonths = gapTime / (1000 * 60 * 60 * 24 * 30);
+                    let gapIndicatorText = "";
+
+                    if (gapYears >= 1) {
+                        gapIndicatorText = `${Math.floor(gapYears)} vuotta`;
+                    } else if (gapMonths >= 1) {
+                        gapIndicatorText = `${Math.floor(gapMonths)} kuukautta`;
+                    }
+
+                    if (gapIndicatorText) {
+                        const gapIndicator = createGapIndicator(gapIndicatorText);
+                        gapIndicator.style.left = `${(previousYearContainer.offsetLeft + yearContainer.offsetLeft) / 2}px`;
+                        timelineContainer.appendChild(gapIndicator);
+                    }
+                }
+
+                previousDate = currentDate;
+                previousYearContainer = yearContainer;
             });
 
             // Lisää vaakasuora viiva
@@ -86,28 +120,38 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 /**
- * Adds a gap indicator for years with a gap in between.
+ * Adds a gap indicator for years or months with a gap in between.
  */
-function addGapIndicator(container, gapYears) {
+function createGapIndicator(gapText) {
     const gapIndicator = document.createElement("div");
     gapIndicator.className = "gap-indicator";
-    gapIndicator.innerText = `${gapYears} vuotta väliin`;
-    container.appendChild(gapIndicator);
+    gapIndicator.innerText = gapText;
+    return gapIndicator;
 }
 
 /**
  * Creates and returns a container for each year with its events.
  */
-function createYearContainer(year) {
+function createYearContainer(year, month, day) {
     const yearContainer = document.createElement("div");
     yearContainer.className = "year-container";
 
     const yearDiv = document.createElement("div");
     yearDiv.className = "year";
-    yearDiv.innerHTML = `Vuosi: ${year}`;
+    yearDiv.innerHTML = `${year}.${month}.${day}`;
 
     yearContainer.appendChild(yearDiv);
     return yearContainer;
+}
+
+/**
+ * Creates a dot representing a year on the horizontal line.
+ */
+function createYearDot(year, month, day) {
+    const yearDot = document.createElement("div");
+    yearDot.className = "year-dot";
+    yearDot.title = `${year}.${month}.${day}`;
+    return yearDot;
 }
 
 /**

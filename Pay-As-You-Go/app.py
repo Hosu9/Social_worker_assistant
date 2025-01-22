@@ -1,7 +1,7 @@
 from flask import Flask, jsonify, request, send_from_directory
 import aikajana
 import chatbox
-import os
+import json
 
 app = Flask(__name__, static_folder='front', template_folder='front')
 
@@ -16,8 +16,8 @@ def serve_static_files(path):
 @app.route('/api/timeline', methods=['POST'])
 def get_timeline_events():
     try:
-        output = aikajana.main()
-        return output
+        answer = aikajana.main()
+        return jsonify({"timeline": json.loads(answer)})
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
@@ -26,12 +26,18 @@ def search():
     try:
         data = request.json
         question = data.get('question', '')
+
         if not question:
             return jsonify({"error": "No question provided"}), 400
+
+        # Get the answer from chatbox.py
         response = chatbox.rag_chat(question)
+        print("Generated answer:", response)
         return jsonify({"answer": response})
     except Exception as e:
+        print(f"Error processing search: {str(e)}")
         return jsonify({"error": str(e)}), 500
+
 
 if __name__ == '__main__':
     app.run(debug=True)
