@@ -11,12 +11,14 @@
         <div class="button-container">
             <button onclick="generateTimeline()">Generoi Tapahtumat</button>
             <button onclick="generateSpecificTimeline()">Pahimmat tapahtumat</button>
+            <button id="generate-aikajana" class="generate-aikajana-button">Generoi Aikajana</button>
+            <button onclick="generateAikajanaFromAPI()">Generoi Aikajana API:sta</button> <!-- New button -->
         </div>
         <label class="switch">
             <input type="checkbox" id="dark-mode-toggle" onclick="toggleDarkMode()">
             <span class="slider round"></span>
         </label>
-    </div>
+    </div>  
     <div class="container">
         <h1>aikajana</h1>
         <div id="timeline-container" class="timeline-wrapper"></div>

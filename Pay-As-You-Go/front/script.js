@@ -4,38 +4,52 @@ function generateTimeline() {
     timelineContainer.innerHTML = ""; // Clear previous events
 
     const currentYear = new Date().getFullYear();
-    const eventsByYear = {};
+    const eventsByDayMonthYear = {};
 
     // Generate random events for the past 18 years
     for (let i = 0; i < 10; i++) {
-        const randomYear = currentYear - Math.floor(Math.random() * 18);
-        if (!eventsByYear[randomYear]) {
-            eventsByYear[randomYear] = [];
+        const randomDate = new Date(currentYear - Math.floor(Math.random() * 18), Math.floor(Math.random() * 12), Math.floor(Math.random() * 28) + 1);
+        const dayMonthYear = `${randomDate.getFullYear()}-${String(randomDate.getMonth() + 1).padStart(2, '0')}-${String(randomDate.getDate()).padStart(2, '0')}`;
+        if (!eventsByDayMonthYear[dayMonthYear]) {
+            eventsByDayMonthYear[dayMonthYear] = [];
         }
-        eventsByYear[randomYear].push({
+        eventsByDayMonthYear[dayMonthYear].push({
             name: `Tapahtuma ${i + 1}`,
-            month: Math.floor(Math.random() * 12)
+            date: randomDate,
+            month: randomDate.getMonth(),
+            day: randomDate.getDate()
         });
     }
 
-    const sortedYears = Object.keys(eventsByYear).map(Number).sort((a, b) => a - b);
+    const sortedDayMonthYears = Object.keys(eventsByDayMonthYear).sort();
 
-    let previousYear = sortedYears[0];
+    let previousDayMonthYear = sortedDayMonthYears[0];
     let isRed = true;
 
-    // Iterate over years to create event markers and flags
-    sortedYears.forEach((year, index) => {
+    // Calculate the date range for zooming
+    const firstDate = new Date(sortedDayMonthYears[0]);
+    const lastDate = new Date(sortedDayMonthYears[sortedDayMonthYears.length - 1]);
+    const totalDays = (lastDate - firstDate) / (1000 * 60 * 60 * 24);
+
+    // Iterate over day-month-years to create event markers and flags
+    sortedDayMonthYears.forEach((dayMonthYear, index) => {
+        const [year, month, day] = dayMonthYear.split('-').map(Number);
+        const previousYear = parseInt(previousDayMonthYear.split('-')[0]);
+
         if (year - previousYear > 1) {
             addGapIndicator(timelineContainer, year - previousYear - 1);
         }
 
         const yearContainer = createYearContainer(year);
-        const timelineDiv = createTimelineDiv(eventsByYear[year], index % 2 === 0, year);
+        const timelineDiv = createTimelineDiv(eventsByDayMonthYear[dayMonthYear], index % 2 === 0, year);
+
+        // Adjust the width of the timelineDiv based on the totalDays
+        timelineDiv.style.width = `${(100 / totalDays) * (day - firstDate.getDate() + 1)}%`;
 
         yearContainer.appendChild(timelineDiv);
         timelineContainer.appendChild(yearContainer);
 
-        previousYear = year;
+        previousDayMonthYear = dayMonthYear;
     });
 
     // Add horizontal line through all timelines
@@ -72,39 +86,54 @@ function generateSpecificTimeline() {
         date: finalDate
     });
 
-    const eventsByYear = {};
+    const eventsByDayMonthYear = {};
 
-    // Group events by year
+    // Group events by day, month, and year
     events.forEach(event => {
         const year = event.date.getFullYear();
         const month = event.date.getMonth();
-        if (!eventsByYear[year]) {
-            eventsByYear[year] = [];
+        const day = event.date.getDate();
+        const dayMonthYear = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+        if (!eventsByDayMonthYear[dayMonthYear]) {
+            eventsByDayMonthYear[dayMonthYear] = [];
         }
-        eventsByYear[year].push({
+        eventsByDayMonthYear[dayMonthYear].push({
             name: event.name,
-            month: month
+            date: event.date,
+            month: month,
+            day: day
         });
     });
 
-    const sortedYears = Object.keys(eventsByYear).map(Number).sort((a, b) => a - b);
+    const sortedDayMonthYears = Object.keys(eventsByDayMonthYear).sort();
 
-    let previousYear = sortedYears[0];
+    let previousDayMonthYear = sortedDayMonthYears[0];
     let isRed = true;
 
-    // Iterate over years to create event markers and flags
-    sortedYears.forEach((year, index) => {
+    // Calculate the date range for zooming
+    const firstDate = new Date(sortedDayMonthYears[0]);
+    const lastDate = new Date(sortedDayMonthYears[sortedDayMonthYears.length - 1]);
+    const totalDays = (lastDate - firstDate) / (1000 * 60 * 60 * 24);
+
+    // Iterate over day-month-years to create event markers and flags
+    sortedDayMonthYears.forEach((dayMonthYear, index) => {
+        const [year, month, day] = dayMonthYear.split('-').map(Number);
+        const previousYear = parseInt(previousDayMonthYear.split('-')[0]);
+
         if (year - previousYear > 1) {
             addGapIndicator(timelineContainer, year - previousYear - 1);
         }
 
         const yearContainer = createYearContainer(year);
-        const timelineDiv = createTimelineDiv(eventsByYear[year], index % 2 === 0, year);
+        const timelineDiv = createTimelineDiv(eventsByDayMonthYear[dayMonthYear], index % 2 === 0, year);
+
+        // Adjust the width of the timelineDiv based on the totalDays
+        timelineDiv.style.width = `${(100 / totalDays) * (day - firstDate.getDate() + 1)}%`;
 
         yearContainer.appendChild(timelineDiv);
         timelineContainer.appendChild(yearContainer);
 
-        previousYear = year;
+        previousDayMonthYear = dayMonthYear;
     });
 
     // Add horizontal line through all timelines
@@ -113,6 +142,86 @@ function generateSpecificTimeline() {
 
     // After generating all the flags, we check for overlaps
     setTimeout(checkFlagOverlaps, 100); // Add a small delay before checking overlaps
+}
+
+// Function to generate the timeline based on aikajana.py response
+function generateAikajanaTimeline() {
+    fetch('/api/timeline', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (!data.timeline) {
+            console.error('Timeline data is undefined');
+            return;
+        }
+
+        const timelineContainer = document.getElementById("timeline-container");
+        timelineContainer.innerHTML = ""; // Clear previous events
+
+        const events = data.timeline;
+        const eventsByDayMonthYear = {};
+
+        // Group events by day, month, and year
+        events.forEach(event => {
+            const eventDate = new Date(event.date);
+            const year = eventDate.getFullYear();
+            const month = eventDate.getMonth();
+            const day = eventDate.getDate();
+            const dayMonthYear = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+            if (!eventsByDayMonthYear[dayMonthYear]) {
+                eventsByDayMonthYear[dayMonthYear] = [];
+            }
+            eventsByDayMonthYear[dayMonthYear].push({
+                name: event.description,
+                date: event.date, // Ensure date is set
+                month: month,
+                day: day
+            });
+        });
+
+        const sortedDayMonthYears = Object.keys(eventsByDayMonthYear).sort();
+
+        let previousDayMonthYear = sortedDayMonthYears[0];
+        let isRed = true;
+
+        // Calculate the date range for zooming
+        const firstDate = new Date(sortedDayMonthYears[0]);
+        const lastDate = new Date(sortedDayMonthYears[sortedDayMonthYears.length - 1]);
+        const totalDays = (lastDate - firstDate) / (1000 * 60 * 60 * 24);
+
+        // Iterate over day-month-years to create event markers and flags
+        sortedDayMonthYears.forEach((dayMonthYear, index) => {
+            const [year, month, day] = dayMonthYear.split('-').map(Number);
+            const previousYear = parseInt(previousDayMonthYear.split('-')[0]);
+
+            if (year - previousYear > 1) {
+                addGapIndicator(timelineContainer, year - previousYear - 1);
+            }
+
+            const yearContainer = createYearContainer(year);
+            const timelineDiv = createTimelineDiv(eventsByDayMonthYear[dayMonthYear], index % 2 === 0, year);
+
+            // Adjust the width of the timelineDiv based on the totalDays
+            timelineDiv.style.width = `${(100 / totalDays) * (day - firstDate.getDate() + 1)}%`;
+
+            yearContainer.appendChild(timelineDiv);
+            timelineContainer.appendChild(yearContainer);
+
+            previousDayMonthYear = dayMonthYear;
+        });
+
+        // Add horizontal line through all timelines
+        const horizontalLine = createHorizontalLine();
+        timelineContainer.appendChild(horizontalLine);
+
+        // After generating all the flags, we check for overlaps
+        setTimeout(checkFlagOverlaps, 100); // Add a small delay before checking overlaps
+    })
+    .catch(error => console.error('Error generating aikajana timeline:', error));
 }
 
 // Add a gap indicator for years with a gap in between
@@ -186,14 +295,13 @@ function createEventFlag(event, isRed) {
 
     const title = document.createElement("div");
     title.className = "flag-title";
-    title.innerText = event.name;
 
-    const description = document.createElement("div");
-    description.className = "flag-description";
-    description.innerText = `Kuukausi: ${event.month + 1}`;
+    
+    //title.innerText = event.name; // Display the description text only
+    
+    title.innerText = `${event.date} ${event.name}`; // Combine date and description
 
     flag.appendChild(title);
-    flag.appendChild(description);
 
     flag.style.left = `${(event.month / 12) * 100}%`;
     flag.style.top = "-50px"; // Set a fixed top position
@@ -246,6 +354,9 @@ function checkFlagOverlaps() {
     // Adjust the height of the timeline container
     const timelineContainer = document.getElementById("timeline-container");
     timelineContainer.style.height = `${maxHeight + 20}px`; // Add some padding
+
+    // Ensure the whole timeline is visible
+    timelineContainer.scrollIntoView({ behavior: 'smooth', block: 'end' });
 }
 
 // Helper function to adjust flag position upwards
@@ -254,10 +365,13 @@ function adjustFlagPosition(flag, offset) {
     flag.style.top = newTop + "px";
 
     // Update the event line height and position
-    const eventLine = flag.previousElementSibling.querySelector(".event-line");
+    const eventDot = flag.previousElementSibling;
+    const eventLine = eventDot.querySelector(".event-line");
     if (eventLine) {
-        const newHeight = parseInt(eventLine.style.height || 0) + offset;
-        eventLine.style.height = newHeight + "px";
+        const dotRect = eventDot.getBoundingClientRect();
+        const flagRect = flag.getBoundingClientRect();
+        const newHeight = dotRect.top - flagRect.top;
+        eventLine.style.height = `${newHeight}px`;
         eventLine.style.top = `${-newHeight}px`; // Move the event line up
     }
     // Print to console when a flag is moved
@@ -311,9 +425,91 @@ document.addEventListener("DOMContentLoaded", () => {
             chatInput.value = "";
         }
     });
+
+    const generateAikajanaButton = document.getElementById("generate-aikajana");
+    generateAikajanaButton.addEventListener("click", generateAikajanaTimeline);
 });
 
 // Call the function to check for overlaps
 document.addEventListener("DOMContentLoaded", () => {
     checkFlagOverlaps();
 });
+
+function generateAikajanaFromAPI() {
+    fetch('/api/timeline', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (!data.timeline) {
+            console.error('Timeline data is undefined');
+            return;
+        }
+
+        const timelineContainer = document.getElementById("timeline-container");
+        timelineContainer.innerHTML = ""; // Clear previous events
+
+        const events = data.timeline;
+        const eventsByDayMonthYear = {};
+
+        // Group events by day, month, and year
+        events.forEach(event => {
+            const eventDate = new Date(event.date);
+            const year = eventDate.getFullYear();
+            const month = eventDate.getMonth();
+            const day = eventDate.getDate();
+            const dayMonthYear = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+            if (!eventsByDayMonthYear[dayMonthYear]) {
+                eventsByDayMonthYear[dayMonthYear] = [];
+            }
+            eventsByDayMonthYear[dayMonthYear].push({
+                name: event.description,
+                date: event.date, // Ensure date is set
+                month: month,
+                day: day
+            });
+        });
+
+        const sortedDayMonthYears = Object.keys(eventsByDayMonthYear).sort();
+
+        let previousDayMonthYear = sortedDayMonthYears[0];
+        let isRed = true;
+
+        // Calculate the date range for zooming
+        const firstDate = new Date(sortedDayMonthYears[0]);
+        const lastDate = new Date(sortedDayMonthYears[sortedDayMonthYears.length - 1]);
+        const totalDays = (lastDate - firstDate) / (1000 * 60 * 60 * 24);
+
+        // Iterate over day-month-years to create event markers and flags
+        sortedDayMonthYears.forEach((dayMonthYear, index) => {
+            const [year, month, day] = dayMonthYear.split('-').map(Number);
+            const previousYear = parseInt(previousDayMonthYear.split('-')[0]);
+
+            if (year - previousYear > 1) {
+                addGapIndicator(timelineContainer, year - previousYear - 1);
+            }
+
+            const yearContainer = createYearContainer(year);
+            const timelineDiv = createTimelineDiv(eventsByDayMonthYear[dayMonthYear], index % 2 === 0, year);
+
+            // Adjust the width of the timelineDiv based on the totalDays
+            timelineDiv.style.width = `${(100 / totalDays) * (day - firstDate.getDate() + 1)}%`;
+
+            yearContainer.appendChild(timelineDiv);
+            timelineContainer.appendChild(yearContainer);
+
+            previousDayMonthYear = dayMonthYear;
+        });
+
+        // Add horizontal line through all timelines
+        const horizontalLine = createHorizontalLine();
+        timelineContainer.appendChild(horizontalLine);
+
+        // After generating all the flags, we check for overlaps
+        setTimeout(checkFlagOverlaps, 100); // Add a small delay before checking overlaps
+    })
+    .catch(error => console.error('Error generating aikajana timeline:', error));
+}
