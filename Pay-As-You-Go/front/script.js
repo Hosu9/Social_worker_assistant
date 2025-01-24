@@ -1,3 +1,11 @@
+// Function to format date to match the format in aikajana.py
+function formatDate(date) {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+}
+
 // Function to generate the timeline
 function generateTimeline() {
     const timelineContainer = document.getElementById("timeline-container");
@@ -10,7 +18,7 @@ function generateTimeline() {
     // Generate random events for the past 18 years
     for (let i = 0; i < 10; i++) {
         const randomDate = new Date(currentYear - Math.floor(Math.random() * 18), Math.floor(Math.random() * 12), Math.floor(Math.random() * 28) + 1);
-        const dayMonthYear = `${randomDate.getFullYear()}-${String(randomDate.getMonth() + 1).padStart(2, '0')}-${String(randomDate.getDate()).padStart(2, '0')}`;
+        const dayMonthYear = formatDate(randomDate);
         if (!eventsByDayMonthYear[dayMonthYear]) {
             eventsByDayMonthYear[dayMonthYear] = [];
         }
@@ -78,7 +86,7 @@ function generateSpecificTimeline() {
         date.setDate(today.getDate() + i);
         events.push({
             name: `Tapahtuma ${i + 1}`,
-            date: date
+            date: formatDate(date)
         });
     }
 
@@ -87,23 +95,23 @@ function generateSpecificTimeline() {
     finalDate.setFullYear(today.getFullYear() + 18);
     events.push({
         name: `Tapahtuma 10`,
-        date: finalDate
+        date: formatDate(finalDate)
     });
 
     const eventsByDayMonthYear = {};
 
     // Group events by day, month, and year
     events.forEach(event => {
-        const year = event.date.getFullYear();
-        const month = event.date.getMonth();
-        const day = event.date.getDate();
-        const dayMonthYear = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+        const year = event.date.split('-')[0];
+        const month = event.date.split('-')[1] - 1;
+        const day = event.date.split('-')[2];
+        const dayMonthYear = event.date;
         if (!eventsByDayMonthYear[dayMonthYear]) {
             eventsByDayMonthYear[dayMonthYear] = [];
         }
         eventsByDayMonthYear[dayMonthYear].push({
             name: event.name,
-            date: event.date,
+            date: new Date(year, month, day),
             month: month,
             day: day
         });
@@ -178,7 +186,7 @@ function generateAikajanaTimeline() {
             const year = eventDate.getFullYear();
             const month = eventDate.getMonth();
             const day = eventDate.getDate();
-            const dayMonthYear = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+            const dayMonthYear = formatDate(eventDate);
             if (!eventsByDayMonthYear[dayMonthYear]) {
                 eventsByDayMonthYear[dayMonthYear] = [];
             }
@@ -304,8 +312,7 @@ function createEventFlag(event, isRed) {
 
     const title = document.createElement("div");
     title.className = "flag-title";
-    //title.innerText = `${event.name}`; // Display the event name only
-    title.innerText = `${event.date} ${event.name}`; // Combine date and description
+    title.innerText = `${formatDate(new Date(event.date))} ${event.name}`; // Combine date and description
 
     flag.appendChild(title);
 
@@ -332,7 +339,7 @@ function addEventCard(event) {
 
     const title = document.createElement("div");
     title.className = "event-card-title";
-    title.innerText = `${event.date} ${event.name}`;
+    title.innerText = `${formatDate(new Date(event.date))} ${event.name}`;
 
     const description = document.createElement("div");
     description.className = "event-card-description";
@@ -513,7 +520,7 @@ function generateAikajanaFromAPI() {
             const year = eventDate.getFullYear();
             const month = eventDate.getMonth();
             const day = eventDate.getDate();
-            const dayMonthYear = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+            const dayMonthYear = formatDate(eventDate);
             if (!eventsByDayMonthYear[dayMonthYear]) {
                 eventsByDayMonthYear[dayMonthYear] = [];
             }
