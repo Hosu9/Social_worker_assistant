@@ -54,7 +54,9 @@ function generateTimeline() {
     });
 
     // Add horizontal line through all timelines
-    const horizontalLine = createHorizontalLine();
+    const firstDot = document.querySelector(".event-dot");
+    const firstDotLeft = firstDot ? firstDot.getBoundingClientRect().left - timelineContainer.getBoundingClientRect().left : 0;
+    const horizontalLine = createHorizontalLine(firstDotLeft);
     timelineContainer.appendChild(horizontalLine);
 
     // After generating all the flags, we check for overlaps
@@ -139,7 +141,9 @@ function generateSpecificTimeline() {
     });
 
     // Add horizontal line through all timelines
-    const horizontalLine = createHorizontalLine();
+    const firstDot = document.querySelector(".event-dot");
+    const firstDotLeft = firstDot ? firstDot.getBoundingClientRect().left - timelineContainer.getBoundingClientRect().left : 0;
+    const horizontalLine = createHorizontalLine(firstDotLeft);
     timelineContainer.appendChild(horizontalLine);
 
     // After generating all the flags, we check for overlaps
@@ -218,7 +222,9 @@ function generateAikajanaTimeline() {
         });
 
         // Add horizontal line through all timelines
-        const horizontalLine = createHorizontalLine();
+        const firstDot = document.querySelector(".event-dot");
+        const firstDotLeft = firstDot ? firstDot.getBoundingClientRect().left - timelineContainer.getBoundingClientRect().left : 0;
+        const horizontalLine = createHorizontalLine(firstDotLeft);
         timelineContainer.appendChild(horizontalLine);
 
         // After generating all the flags, we check for overlaps
@@ -298,10 +304,6 @@ function createEventFlag(event, isRed) {
 
     const title = document.createElement("div");
     title.className = "flag-title";
-
-    
-    //title.innerText = event.name; // Display the description text only
-    
     title.innerText = `${event.date} ${event.name}`; // Combine date and description
 
     flag.appendChild(title);
@@ -309,13 +311,58 @@ function createEventFlag(event, isRed) {
     flag.style.left = `${(event.month / 12) * 100}%`;
     flag.style.top = "-50px"; // Set a fixed top position
 
+    // Add event card
+    const card = addEventCard(event);
+
+    // Add click event to highlight the corresponding card
+    flag.addEventListener("click", () => {
+        highlightCard(card);
+    });
+
     return flag;
 }
 
+// Add an event card to the event cards container
+function addEventCard(event) {
+    const eventCardsContainer = document.getElementById("event-cards");
+
+    const card = document.createElement("div");
+    card.className = "event-card";
+
+    const title = document.createElement("div");
+    title.className = "event-card-title";
+    title.innerText = `${event.date} ${event.name}`;
+
+    const description = document.createElement("div");
+    description.className = "event-card-description";
+    description.innerText = event.description || "";
+
+    card.appendChild(title);
+    card.appendChild(description);
+
+    eventCardsContainer.appendChild(card);
+
+    return card;
+}
+
+// Highlight the corresponding card
+function highlightCard(card) {
+    // Remove highlight from all cards
+    const cards = document.querySelectorAll(".event-card");
+    cards.forEach(c => c.classList.remove("highlight"));
+
+    // Add highlight to the selected card
+    card.classList.add("highlight");
+
+    // Scroll the card into view
+    card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+}
+
 // Create the horizontal line that spans through all years in the timeline
-function createHorizontalLine() {
+function createHorizontalLine(firstDotLeft) {
     const line = document.createElement("div");
     line.className = "horizontal-line";
+    line.style.left = `${firstDotLeft}px`; // Start at the first event dot
     return line;
 }
 
@@ -339,7 +386,8 @@ function checkFlagOverlaps() {
                 rect1.top < rect2.bottom && rect1.bottom > rect2.top) {
 
                 // If there's an overlap, move the first flag upwards by its height plus 1px to avoid overlap
-                adjustFlagPosition(flag1, rect1.height + 1);
+                const offset = rect1.bottom - rect2.top + 1;
+                adjustFlagPosition(flag1, offset);
 
                 // Recheck overlap after moving
                 checkFlagOverlaps();
@@ -373,7 +421,7 @@ function adjustFlagPosition(flag, offset) {
     if (eventLine) {
         const dotRect = eventDot.getBoundingClientRect();
         const flagRect = flag.getBoundingClientRect();
-        const newHeight = dotRect.top - flagRect.top;
+        const newHeight = dotRect.top - flagRect.top - 5; // Adjust for new padding
         eventLine.style.height = `${newHeight}px`;
         eventLine.style.top = `${-newHeight}px`; // Move the event line up
     }
@@ -508,7 +556,9 @@ function generateAikajanaFromAPI() {
         });
 
         // Add horizontal line through all timelines
-        const horizontalLine = createHorizontalLine();
+        const firstDot = document.querySelector(".event-dot");
+        const firstDotLeft = firstDot ? firstDot.getBoundingClientRect().left - timelineContainer.getBoundingClientRect().left : 0;
+        const horizontalLine = createHorizontalLine(firstDotLeft);
         timelineContainer.appendChild(horizontalLine);
 
         // After generating all the flags, we check for overlaps

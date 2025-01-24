@@ -109,8 +109,8 @@ input:checked + .slider:before {
 /* Main container styling */
 .container {
     text-align: center;
-    width: 80%;
-    max-width: 1200px;
+    width: 90%;
+    max-width: 1500px;
     margin: 100px auto 0; /* Add top margin to account for the fixed top bar */
     padding: 20px;
     background-color: #fff;
@@ -203,8 +203,8 @@ button:hover {
     position: absolute;
     width: 3px;
     background-color: #333;
-    top: -100px; /* Pituus ylöspäin */
-    height: 100px; /* Viivan korkeus */
+    top: -90px; /* Pituus ylöspäin */
+    height: 90px; /* Viivan korkeus */
     left: 50%;
     transform: translateX(-50%);
 }
@@ -248,17 +248,17 @@ button:hover {
 /* Flag styling */
 .flag {
     position: absolute;
-    bottom: 5px;
-    min-width: 120px; /* Set a minimum width */
-    height: 24px; /* Set a fixed height */
+    
+    inline-size: 130px; /* Set a fixed inline size */
+    max-height: fit-content;
     background-color: white;
     border: 2px solid var(--border-color); /* Use CSS variable for border color */
     border-radius: 5px;
-    padding: 10px;
+    padding: 5px; /* Change padding to 5px */
     text-align: center;
     transform: translateY(-100%);
-    z-index: 2;
-    white-space: nowrap; /* Prevent text wrapping */
+    z-index: 3;
+    white-space: normal; /* Prevent text wrapping */
     overflow: hidden; /* Hide overflow text */
     text-overflow: ellipsis; /* Add ellipsis for overflow text */
 }
@@ -363,10 +363,18 @@ body.dark-mode .chat-input button:hover {
     background-color: #2563eb;
 }
 
+/* Chat and event cards container styling */
+.chat-event-container {
+    display: flex;
+    justify-content: space-between;
+    width: 100%;
+    margin-top: 20px;
+}
+
 /* Chat container styling */
 .chat-container {
-    width: 50%; /* Decrease width */
-    height: 400px; /* Decrease height */
+    width: 48%; /* Adjust width to fit side by side */
+    height: 400px;
     background-color: #fff;
     border: 3px solid #ccc;
     border-radius: 20px;
@@ -374,11 +382,9 @@ body.dark-mode .chat-input button:hover {
     display: flex;
     flex-direction: column;
     overflow: hidden;
-    margin-top: 20px; /* Add margin to ensure it stays below the timeline */
     font-family: 'Roboto', sans-serif;
-    z-index: 1000; /* Ensure it stays on top */
-    position: relative; /* Ensure it is part of the scrollable content */
-    place-self: center; /* Center the chat container */
+    z-index: 1000;
+    position: relative;
 }
 
 .chat-header {
@@ -442,4 +448,62 @@ body.dark-mode .chat-input button:hover {
 
 .chat-input button:hover {
     background-color: #2563eb;
+}
+
+/* Event cards container styling */
+.event-cards-container {
+    width: 48%; /* Adjust width to fit side by side */
+    height: 400px;
+    background-color: #fff;
+    border: 3px solid #ccc;
+    border-radius: 20px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+    font-family: 'Roboto', sans-serif;
+    z-index: 1000;
+    position: relative;
+}
+
+.event-cards-header {
+    background-color: #3b82f6;
+    color: #fff;
+    padding: 15px;
+    text-align: center;
+    font-weight: bold;
+    border-top-left-radius: 10px;
+    border-top-right-radius: 10px;
+}
+
+.event-cards {
+    flex: 1;
+    padding: 15px;
+    overflow-y: auto;
+    background-color: #f9f9f9;
+}
+
+.event-card {
+    background-color: #fff;
+    border: 1px solid #e0e0e0;
+    border-radius: 10px;
+    padding: 10px;
+    margin-bottom: 10px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+/* Highlighted card styling */
+.event-card.highlight {
+    border: 2px solid #ff5733; /* Highlight border color */
+    background-color: #ffe6e6; /* Highlight background color */
+}
+
+.event-card-title {
+    font-weight: bold;
+    margin-bottom: 5px;
+}
+
+.event-card-description {
+    font-size: 14px;
+    color: #555;
 }
