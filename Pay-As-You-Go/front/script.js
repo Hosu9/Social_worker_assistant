@@ -304,6 +304,7 @@ function createEventFlag(event, isRed) {
 
     const title = document.createElement("div");
     title.className = "flag-title";
+    //title.innerText = `${event.name}`; // Display the event name only
     title.innerText = `${event.date} ${event.name}`; // Combine date and description
 
     flag.appendChild(title);
