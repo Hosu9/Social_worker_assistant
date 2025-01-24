@@ -2,6 +2,7 @@
 function generateTimeline() {
     const timelineContainer = document.getElementById("timeline-container");
     timelineContainer.innerHTML = ""; // Clear previous events
+    timelineContainer.style.height = "auto"; // Reset height
 
     const currentYear = new Date().getFullYear();
     const eventsByDayMonthYear = {};
@@ -64,6 +65,7 @@ function generateTimeline() {
 function generateSpecificTimeline() {
     const timelineContainer = document.getElementById("timeline-container");
     timelineContainer.innerHTML = ""; // Clear previous events
+    timelineContainer.style.height = "auto"; // Reset height
 
     const today = new Date();
     const events = [];
@@ -161,6 +163,7 @@ function generateAikajanaTimeline() {
 
         const timelineContainer = document.getElementById("timeline-container");
         timelineContainer.innerHTML = ""; // Clear previous events
+        timelineContainer.style.height = "auto"; // Reset height
 
         const events = data.timeline;
         const eventsByDayMonthYear = {};
@@ -451,7 +454,7 @@ function generateAikajanaFromAPI() {
 
         const timelineContainer = document.getElementById("timeline-container");
         timelineContainer.innerHTML = ""; // Clear previous events
-
+        timelineContainer.style.height = "auto";
         const events = data.timeline;
         const eventsByDayMonthYear = {};
 
