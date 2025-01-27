@@ -9,7 +9,9 @@ function formatDate(date) {
 // Function to generate the timeline
 function generateTimeline() {
     const timelineContainer = document.getElementById("timeline-container");
+    const eventCardsContainer = document.getElementById("event-cards");
     timelineContainer.innerHTML = ""; // Clear previous events
+    eventCardsContainer.innerHTML = ""; // Clear previous event cards
     timelineContainer.style.height = "auto"; // Reset height
 
     const currentYear = new Date().getFullYear();
@@ -74,7 +76,9 @@ function generateTimeline() {
 // Function to generate a timeline with specific dates
 function generateSpecificTimeline() {
     const timelineContainer = document.getElementById("timeline-container");
+    const eventCardsContainer = document.getElementById("event-cards");
     timelineContainer.innerHTML = ""; // Clear previous events
+    eventCardsContainer.innerHTML = ""; // Clear previous event cards
     timelineContainer.style.height = "auto"; // Reset height
 
     const today = new Date();
@@ -174,7 +178,9 @@ function generateAikajanaTimeline() {
         }
 
         const timelineContainer = document.getElementById("timeline-container");
+        const eventCardsContainer = document.getElementById("event-cards");
         timelineContainer.innerHTML = ""; // Clear previous events
+        eventCardsContainer.innerHTML = ""; // Clear previous event cards
         timelineContainer.style.height = "auto"; // Reset height
 
         const events = data.timeline;
@@ -509,7 +515,9 @@ function generateAikajanaFromAPI() {
         }
 
         const timelineContainer = document.getElementById("timeline-container");
+        const eventCardsContainer = document.getElementById("event-cards");
         timelineContainer.innerHTML = ""; // Clear previous events
+        eventCardsContainer.innerHTML = ""; // Clear previous event cards
         timelineContainer.style.height = "auto";
         const events = data.timeline;
         const eventsByDayMonthYear = {};
