@@ -37,13 +37,5 @@ def search():
         print(f"Error processing search: {str(e)}")
         return jsonify({"error": str(e)}), 500
 
-def main():
-    try:
-        events = aikajana.get_significant_events("Kerro Emmasta 10 merkitsevää elämäntapahtumaa")
-        return events
-    except Exception as e:
-        print(f"Error generating timeline: {str(e)}")
-
 if __name__ == '__main__':
-    main()
     app.run(debug=True)
