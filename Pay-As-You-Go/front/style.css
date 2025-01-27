@@ -249,7 +249,7 @@ button:hover {
 .flag {
     position: absolute;
     
-    inline-size: 130px; /* Set a fixed inline size */
+    /*inline-size: 130px; /* Set a fixed inline size */
     max-height: fit-content;
     background-color: white;
     border: 2px solid var(--border-color); /* Use CSS variable for border color */
