@@ -95,6 +95,7 @@ button {
     width: 10px;
     height: 10px;
     border-radius: 50%;
+    z-index: 2;
     cursor: pointer;
 }
 
@@ -141,25 +142,26 @@ button {
 }
 
 .flag {
-    position: absolute;
-    bottom: 5px;
+    position: absolute; /* Change to absolute for precise positioning */
+    top: 50%; /* Align the flag with the horizontal line */
+    transform: translateY(-50%); /* Center vertically */
     background-color: white;
     border: 2px solid var(--border-color);
     border-radius: 5px;
     padding: 10px;
     text-align: center;
-    transform: translateY(-100%);
     z-index: 1;
     white-space: nowrap; /* Prevent text wrapping */
     left: 45%; /* Move slightly to the left */
-    transform: translateX(-50%) translateY(-100%);
+    transform: translateX(-50%) translateY(-50%);
+    margin-bottom: 5px; /* Reduce margin for closer spacing */
 }
 
 .flag::after {
     content: "";
     position: absolute;
     width: 2px;
-    height: 60px; /* Adjust height as needed */
+    height: 30px; /* Reduce height for closer spacing */
     background-color: var(--border-color);
     top: 100%;
     left: 45%; /* Move slightly to the left */
@@ -262,7 +264,7 @@ button {
     flex-direction: column;
     overflow: hidden;
     position: relative;
-    top: 200px; /* Move chat box down */
+    top: 100px; /* Move chat box down */
     font-family: 'Roboto', sans-serif;
     overflow-y: auto;
 }
@@ -341,4 +343,11 @@ button {
     border-radius: 3px;
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
     z-index: 1;
+}
+
+/* Add styles for flag overlap adjustments */
+.flag-adjusted {
+    top: auto !important; /* Override top positioning */
+    transform: none !important; /* Remove transform */
+    margin-top: 20px; /* Add margin for spacing */
 }

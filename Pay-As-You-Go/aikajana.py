@@ -47,6 +47,10 @@ def get_significant_events(input_text):
     vector = get_vector_from_openai(input_text, azure_oai_endpoint, azure_oai_key, azure_oai_embedding_deployment)
     # Määritä haku
     search_query = {
+        "semantic": {
+            "query": input_text,
+            "fields": ["documents.metaCustom.asiakirjan_metadata.lisakentat.value"]
+        },
         "search": "*",
         "select": "documents",
         "count": True,
@@ -140,7 +144,27 @@ def main():
     azure_oai_key = os.getenv("AZURE_OAI_KEY")
     azure_oai_deployment = os.getenv("AZURE_OAI_DEPLOYMENT")  
     answer = generate_answer_with_gpt(input_text, events, azure_oai_endpoint, azure_oai_key, azure_oai_deployment)
+    print(answer)
     return answer
 
-if __name__ == "__main__":
+
+# def get_hypothetical_data():
+#     return [
+#         {"Vuosi": "2021-03-15", "Kertomus": "Emma ja sisarukset sijoitettiin kiireellisesti."},
+#         {"Vuosi": "2021-03-26", "Kertomus": "Sijoituksen yksityiskohdat sovittiin neuvottelussa."},
+#         {"Vuosi": "2021-06-01", "Kertomus": "Emma innostui tanssiharrastuksesta."},
+#         {"Vuosi": "2021-07-22", "Kertomus": "Sijoitusjakson päättymisestä ja kotiinpaluusta raportoitiin."},
+#         {"Vuosi": "2022-03-10", "Kertomus": "Tehostettu perhetyö päätettiin lopettaa."},
+#         {"Vuosi": "2023-05-01", "Kertomus": "Äidin itsemurhayritys, lapset sijoitettiin uudelleen."},
+#         {"Vuosi": "2023-08-20", "Kertomus": "Sijoitusjakson päättymisestä ja kotiinpaluusta raportoitiin."},
+#         {"Vuosi": "2024-01-10", "Kertomus": "Verkostoneuvottelu tehostetun perhetyön jatkosta."},
+#         {"Vuosi": "2024-05-01", "Kertomus": "Emma aloitti kirjallisuusharrastuksen."},
+#         {"Vuosi": "2024-12-10", "Kertomus": "Emma lopetti kirjallisuuskerhon ja oli masentunut."}
+#     ]
+
+# def main():
+#     events = get_hypothetical_data()
+#     return json.dumps(events)
+
+if __name__ == "__main__": 
     main()
