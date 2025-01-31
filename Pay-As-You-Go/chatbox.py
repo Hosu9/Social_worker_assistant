@@ -32,13 +32,21 @@ def process_search_results(results):
     )
 
 def get_prompt(prompts, prompt_type, context, user_input):
-    prompt = prompts[prompt_type]
-    system_message = prompt[0]["content"]
-    user_message = prompt[1]["content"].format(context=context, user_input=user_input)
-    return [
-        {"role": "system", "content": system_message},
-        {"role": "user", "content": user_message}
-    ]
+    prompt = {
+        "role": "system",
+        "content": (
+            "Olet avulias ja tarkka assistentti, joka käsittelee suomeksi vain ja ainoastaan annettua asiakastietoa. "
+            "Älä keksi omia tietoja. Määrittele mikä on merkitsevää elämäntapahtumaa. "
+            "Muotoile vastausta kolmella sanalla. "
+            "Laajenna datan hakua siten, että saamme joka vuodelta vähintään yhden merkitsevän elämäntapahtuman."
+            "Vastaa kysymykseen annetun kontekstin perusteella seuraavassa muodossa: {\"timeline\": [{\"date\": \"Päivämäärä\", \"description\": \"Tapahtuma\"}"
+        )
+    }
+    user_message = {
+        "role": "user",
+        "content": f"Konteksti:\n{context}\n\nKysymys: {user_input}\n\nVastaa mahdollisimman tarkasti."
+    }
+    return [prompt, user_message]
 
 def get_chat_response(messages, azure_oai_endpoint, azure_oai_key, azure_oai_deployment):
     try:
@@ -53,7 +61,10 @@ def get_chat_response(messages, azure_oai_endpoint, azure_oai_key, azure_oai_dep
             max_tokens=500,
             temperature=0.2  # Pienempi lämpötila tarkempia vastauksia varten
         )
-        return response['choices'][0]['message']['content'].strip()
+        response_content = response['choices'][0]['message']['content'].strip()
+        
+        # Return the response content directly
+        return response_content
 
     except Exception as ex:
         raise ValueError(f"Virhe OpenAI:n käsittelyssä: {ex}")

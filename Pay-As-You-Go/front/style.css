@@ -145,12 +145,30 @@ button:hover {
     transform: scale(1.05);
 }
 
+/* Specific styling for the "Generate Timeline" button */
+.generate-timeline-button {
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    padding: 10px 20px;
+    font-size: 16px;
+    cursor: pointer;
+    margin-top: 10px;
+    transition: background-color 0.3s, transform 0.3s;
+}
+
+.generate-timeline-button:hover {
+    background-color: #0056b3;
+    transform: scale(1.05);
+}
+
 /* Timeline wrapper styling */
 .timeline-wrapper {
     display: flex;
     align-items: center;
     gap: 20px;
-    margin-top: 350px; /* Adjusted margin to ensure it doesn't overlap with the heading */
+    margin-top: 200px; /* Adjusted margin to ensure it doesn't overlap with the heading */
     margin-right: 150px;
     overflow-x: visible;
     position: relative;

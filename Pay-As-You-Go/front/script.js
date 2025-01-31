@@ -457,6 +457,75 @@ function toggleDarkMode() {
     document.body.classList.toggle("dark-mode");
 }
 
+// Function to generate a timeline from chat message events
+function generateTimelineFromChat(events) {
+    const timelineContainer = document.getElementById("timeline-container");
+    const eventCardsContainer = document.getElementById("event-cards");
+    timelineContainer.innerHTML = ""; // Clear previous events
+    eventCardsContainer.innerHTML = ""; // Clear previous event cards
+    timelineContainer.style.height = "auto"; // Reset height
+
+    const eventsByDayMonthYear = {};
+
+    // Group events by day, month, and year
+    events.forEach(event => {
+        const eventDate = new Date(event.date);
+        const year = eventDate.getFullYear();
+        const month = eventDate.getMonth();
+        const day = eventDate.getDate();
+        const dayMonthYear = formatDate(eventDate);
+        if (!eventsByDayMonthYear[dayMonthYear]) {
+            eventsByDayMonthYear[dayMonthYear] = [];
+        }
+        eventsByDayMonthYear[dayMonthYear].push({
+            name: event.description,
+            date: event.date, // Ensure date is set
+            month: month,
+            day: day
+        });
+    });
+
+    const sortedDayMonthYears = Object.keys(eventsByDayMonthYear).sort();
+
+    let previousDayMonthYear = sortedDayMonthYears[0];
+    let isRed = true;
+
+    // Calculate the date range for zooming
+    const firstDate = new Date(sortedDayMonthYears[0]);
+    const lastDate = new Date(sortedDayMonthYears[sortedDayMonthYears.length - 1]);
+    const totalDays = (lastDate - firstDate) / (1000 * 60 * 60 * 24);
+
+    // Iterate over day-month-years to create event markers and flags
+    sortedDayMonthYears.forEach((dayMonthYear, index) => {
+        const [year, month, day] = dayMonthYear.split('-').map(Number);
+        const previousYear = parseInt(previousDayMonthYear.split('-')[0]);
+
+        if (year - previousYear > 1) {
+            addGapIndicator(timelineContainer, year - previousYear - 1);
+        }
+
+        const yearContainer = createYearContainer(year);
+        const timelineDiv = createTimelineDiv(eventsByDayMonthYear[dayMonthYear], index % 2 === 0, year);
+
+        // Adjust the width of the timelineDiv based on the totalDays
+        timelineDiv.style.width = `${(100 / totalDays) * (day - firstDate.getDate() + 1)}%`;
+
+        yearContainer.appendChild(timelineDiv);
+        timelineContainer.appendChild(yearContainer);
+
+        previousDayMonthYear = dayMonthYear;
+    });
+
+    // Add horizontal line through all timelines
+    const firstDot = document.querySelector(".event-dot");
+    const firstDotLeft = firstDot ? firstDot.getBoundingClientRect().left - timelineContainer.getBoundingClientRect().left : 0;
+    const horizontalLine = createHorizontalLine(firstDotLeft);
+    timelineContainer.appendChild(horizontalLine);
+
+    // After generating all the flags, we check for overlaps
+    setTimeout(checkFlagOverlaps, 100); // Add a small delay before checking overlaps
+}
+
 // Function to handle chat input and send messages
 document.addEventListener("DOMContentLoaded", () => {
     const chatButton = document.getElementById("chat-send");
@@ -483,9 +552,33 @@ document.addEventListener("DOMContentLoaded", () => {
                 const botMessage = document.createElement("div");
                 botMessage.className = "chat-message bot";
                 botMessage.textContent = data.answer;
-                chatBox.appendChild(botMessage);
+
+                // Check if the response contains events
+                try {
+                    const events = JSON.parse(data.answer).timeline;
+                    if (events) {
+                        const buttonContainer = document.createElement("div");
+                        buttonContainer.className = "chat-message bot";
+
+                        const generateButton = document.createElement("button");
+                        generateButton.className = "generate-timeline-button";
+                        generateButton.textContent = "📅 Lähetä aikajanaan";
+                        generateButton.addEventListener("click", () => generateTimelineFromChat(events));
+                        buttonContainer.appendChild(generateButton);
+
+                        chatBox.appendChild(botMessage);
+                        chatBox.appendChild(buttonContainer);
+                    } else {
+                        chatBox.appendChild(botMessage);
+                    }
+                } catch (e) {
+                    console.error('Response does not contain events:', e);
+                    chatBox.appendChild(botMessage);
+                }
+
                 chatBox.scrollTop = chatBox.scrollHeight;
-            });
+            })
+            .catch(error => console.error('Error processing chat response:', error));
 
             chatInput.value = "";
         }
