@@ -108,7 +108,6 @@ input:checked + .slider:before {
 
 /* Main container styling */
 .container {
-    text-align: center;
     width: 90%;
     max-width: 1500px;
     margin: 100px auto 0; /* Add top margin to account for the fixed top bar */
@@ -248,7 +247,7 @@ button:hover {
     color: #555;
     font-size: 14px;
     font-weight: bold;
-    margin: 0 10px;
+    margin: 50px 10px 0 10px; /* Top margin liikuttaa alaspäin eli eka*/
 }
 
 /* Horizontal line styling */
@@ -453,6 +452,8 @@ body.dark-mode .event-card.highlight {
     border-radius: 10px;
     max-width: 80%;
     overflow-y: auto;
+    white-space: pre-wrap; /* Vastaukset on kaikki omilla riveillä */
+    text-align: left; /* Teksti alkaa vasemmalta */
 }
 
 .chat-message.user {
@@ -507,6 +508,7 @@ body.dark-mode .event-card.highlight {
     font-family: 'Roboto', sans-serif;
     z-index: 1000;
     position: relative;
+    
 }
 
 .event-cards-header {

@@ -1,5 +1,4 @@
 from flask import Flask, jsonify, request, send_from_directory
-import aikajana
 import chatbox
 
 app = Flask(__name__, static_folder='front', template_folder='front')
@@ -11,14 +10,6 @@ def serve_frontend():
 @app.route('/<path:path>')
 def serve_static_files(path):
     return send_from_directory('front', path)
-
-@app.route('/api/timeline', methods=['POST'])
-def get_timeline_output():
-    try:
-        output = aikajana.main()
-        return output
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
 
 @app.route('/api/search', methods=['POST'])
 def search():

@@ -1,4 +1,4 @@
-// Function to format date to match the format in aikajana.py
+// Funktio päivämäärän muotoiluun aikajana.py:n formaattiin
 function formatDate(date) {
     const year = date.getFullYear();
     const month = String(date.getMonth() + 1).padStart(2, '0');
@@ -6,18 +6,18 @@ function formatDate(date) {
     return `${year}-${month}-${day}`;
 }
 
-// Function to generate the timeline
+// Funktio aikajanan generointiin
 function generateTimeline() {
     const timelineContainer = document.getElementById("timeline-container");
     const eventCardsContainer = document.getElementById("event-cards");
-    timelineContainer.innerHTML = ""; // Clear previous events
-    eventCardsContainer.innerHTML = ""; // Clear previous event cards
-    timelineContainer.style.height = "auto"; // Reset height
+    timelineContainer.innerHTML = ""; // Tyhjennä aiemmat tapahtumat
+    eventCardsContainer.innerHTML = ""; // Tyhjennä aiemmat tapahtumakortit
+    timelineContainer.style.height = "auto"; // Nollaa korkeus
 
     const currentYear = new Date().getFullYear();
     const eventsByDayMonthYear = {};
 
-    // Generate random events for the past 18 years
+    // Generoi satunnaisia tapahtumia viimeisen 18 vuoden ajalta
     for (let i = 0; i < 10; i++) {
         const randomDate = new Date(currentYear - Math.floor(Math.random() * 18), Math.floor(Math.random() * 12), Math.floor(Math.random() * 28) + 1);
         const dayMonthYear = formatDate(randomDate);
@@ -37,12 +37,12 @@ function generateTimeline() {
     let previousDayMonthYear = sortedDayMonthYears[0];
     let isRed = true;
 
-    // Calculate the date range for zooming
+    // Laske päivämääräväli zoomausta varten
     const firstDate = new Date(sortedDayMonthYears[0]);
     const lastDate = new Date(sortedDayMonthYears[sortedDayMonthYears.length - 1]);
     const totalDays = (lastDate - firstDate) / (1000 * 60 * 60 * 24);
 
-    // Iterate over day-month-years to create event markers and flags
+    // Iteroi päivä-kuukausi-vuosien yli luodaksesi tapahtumamerkit ja liput
     sortedDayMonthYears.forEach((dayMonthYear, index) => {
         const [year, month, day] = dayMonthYear.split('-').map(Number);
         const previousYear = parseInt(previousDayMonthYear.split('-')[0]);
@@ -54,7 +54,7 @@ function generateTimeline() {
         const yearContainer = createYearContainer(year);
         const timelineDiv = createTimelineDiv(eventsByDayMonthYear[dayMonthYear], index % 2 === 0, year);
 
-        // Adjust the width of the timelineDiv based on the totalDays
+        // Säädä timelineDiv:n leveys perustuen totalDays-arvoon
         timelineDiv.style.width = `${(100 / totalDays) * (day - firstDate.getDate() + 1)}%`;
 
         yearContainer.appendChild(timelineDiv);
@@ -63,28 +63,28 @@ function generateTimeline() {
         previousDayMonthYear = dayMonthYear;
     });
 
-    // Add horizontal line through all timelines
+    // Lisää vaakasuora viiva kaikkien aikajanojen läpi
     const firstDot = document.querySelector(".event-dot");
     const firstDotLeft = firstDot ? firstDot.getBoundingClientRect().left - timelineContainer.getBoundingClientRect().left : 0;
     const horizontalLine = createHorizontalLine(firstDotLeft);
     timelineContainer.appendChild(horizontalLine);
 
-    // After generating all the flags, we check for overlaps
-    setTimeout(checkFlagOverlaps, 100); // Add a small delay before checking overlaps
+    // Kun kaikki liput on luotu, tarkista päällekkäisyydet
+    setTimeout(checkFlagOverlaps, 100); // Lisää pieni viive ennen päällekkäisyyksien tarkistamista
 }
 
-// Function to generate a timeline with specific dates
+// Funktio aikajanan generointiin tietyillä päivämäärillä
 function generateSpecificTimeline() {
     const timelineContainer = document.getElementById("timeline-container");
     const eventCardsContainer = document.getElementById("event-cards");
-    timelineContainer.innerHTML = ""; // Clear previous events
-    eventCardsContainer.innerHTML = ""; // Clear previous event cards
-    timelineContainer.style.height = "auto"; // Reset height
+    timelineContainer.innerHTML = ""; // Tyhjennä aiemmat tapahtumat
+    eventCardsContainer.innerHTML = ""; // Tyhjennä aiemmat tapahtumakortit
+    timelineContainer.style.height = "auto"; // Nollaa korkeus
 
     const today = new Date();
     const events = [];
 
-    // Add today and the next 8 days
+    // Lisää tänään ja seuraavat 8 päivää
     for (let i = 0; i < 9; i++) {
         const date = new Date(today);
         date.setDate(today.getDate() + i);
@@ -94,7 +94,7 @@ function generateSpecificTimeline() {
         });
     }
 
-    // Add a date 18 years later
+    // Lisää päivämäärä 18 vuoden päästä
     const finalDate = new Date(today);
     finalDate.setFullYear(today.getFullYear() + 18);
     events.push({
@@ -104,7 +104,7 @@ function generateSpecificTimeline() {
 
     const eventsByDayMonthYear = {};
 
-    // Group events by day, month, and year
+    // Ryhmittele tapahtumat päivän, kuukauden ja vuoden mukaan
     events.forEach(event => {
         const year = event.date.split('-')[0];
         const month = event.date.split('-')[1] - 1;
@@ -126,12 +126,12 @@ function generateSpecificTimeline() {
     let previousDayMonthYear = sortedDayMonthYears[0];
     let isRed = true;
 
-    // Calculate the date range for zooming
+    // Laske päivämääräväli zoomausta varten
     const firstDate = new Date(sortedDayMonthYears[0]);
     const lastDate = new Date(sortedDayMonthYears[sortedDayMonthYears.length - 1]);
     const totalDays = (lastDate - firstDate) / (1000 * 60 * 60 * 24);
 
-    // Iterate over day-month-years to create event markers and flags
+    // Iteroi päivä-kuukausi-vuosien yli luodaksesi tapahtumamerkit ja liput
     sortedDayMonthYears.forEach((dayMonthYear, index) => {
         const [year, month, day] = dayMonthYear.split('-').map(Number);
         const previousYear = parseInt(previousDayMonthYear.split('-')[0]);
@@ -143,7 +143,7 @@ function generateSpecificTimeline() {
         const yearContainer = createYearContainer(year);
         const timelineDiv = createTimelineDiv(eventsByDayMonthYear[dayMonthYear], index % 2 === 0, year);
 
-        // Adjust the width of the timelineDiv based on the totalDays
+        // Säädä timelineDiv:n leveys perustuen totalDays-arvoon
         timelineDiv.style.width = `${(100 / totalDays) * (day - firstDate.getDate() + 1)}%`;
 
         yearContainer.appendChild(timelineDiv);
@@ -152,102 +152,17 @@ function generateSpecificTimeline() {
         previousDayMonthYear = dayMonthYear;
     });
 
-    // Add horizontal line through all timelines
+    // Lisää vaakasuora viiva kaikkien aikajanojen läpi
     const firstDot = document.querySelector(".event-dot");
     const firstDotLeft = firstDot ? firstDot.getBoundingClientRect().left - timelineContainer.getBoundingClientRect().left : 0;
     const horizontalLine = createHorizontalLine(firstDotLeft);
     timelineContainer.appendChild(horizontalLine);
 
-    // After generating all the flags, we check for overlaps
-    setTimeout(checkFlagOverlaps, 100); // Add a small delay before checking overlaps
+    // Kun kaikki liput on luotu, tarkista päällekkäisyydet
+    setTimeout(checkFlagOverlaps, 100); // Lisää pieni viive ennen päällekkäisyyksien tarkistamista
 }
 
-// Function to generate the timeline based on aikajana.py response
-function generateAikajanaTimeline() {
-    fetch('/api/timeline', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        }
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (!data.timeline) {
-            console.error('Timeline data is undefined');
-            return;
-        }
-
-        const timelineContainer = document.getElementById("timeline-container");
-        const eventCardsContainer = document.getElementById("event-cards");
-        timelineContainer.innerHTML = ""; // Clear previous events
-        eventCardsContainer.innerHTML = ""; // Clear previous event cards
-        timelineContainer.style.height = "auto"; // Reset height
-
-        const events = data.timeline;
-        const eventsByDayMonthYear = {};
-
-        // Group events by day, month, and year
-        events.forEach(event => {
-            const eventDate = new Date(event.date);
-            const year = eventDate.getFullYear();
-            const month = eventDate.getMonth();
-            const day = eventDate.getDate();
-            const dayMonthYear = formatDate(eventDate);
-            if (!eventsByDayMonthYear[dayMonthYear]) {
-                eventsByDayMonthYear[dayMonthYear] = [];
-            }
-            eventsByDayMonthYear[dayMonthYear].push({
-                name: event.description,
-                date: event.date, // Ensure date is set
-                month: month,
-                day: day
-            });
-        });
-
-        const sortedDayMonthYears = Object.keys(eventsByDayMonthYear).sort();
-
-        let previousDayMonthYear = sortedDayMonthYears[0];
-        let isRed = true;
-
-        // Calculate the date range for zooming
-        const firstDate = new Date(sortedDayMonthYears[0]);
-        const lastDate = new Date(sortedDayMonthYears[sortedDayMonthYears.length - 1]);
-        const totalDays = (lastDate - firstDate) / (1000 * 60 * 60 * 24);
-
-        // Iterate over day-month-years to create event markers and flags
-        sortedDayMonthYears.forEach((dayMonthYear, index) => {
-            const [year, month, day] = dayMonthYear.split('-').map(Number);
-            const previousYear = parseInt(previousDayMonthYear.split('-')[0]);
-
-            if (year - previousYear > 1) {
-                addGapIndicator(timelineContainer, year - previousYear - 1);
-            }
-
-            const yearContainer = createYearContainer(year);
-            const timelineDiv = createTimelineDiv(eventsByDayMonthYear[dayMonthYear], index % 2 === 0, year);
-
-            // Adjust the width of the timelineDiv based on the totalDays
-            timelineDiv.style.width = `${(100 / totalDays) * (day - firstDate.getDate() + 1)}%`;
-
-            yearContainer.appendChild(timelineDiv);
-            timelineContainer.appendChild(yearContainer);
-
-            previousDayMonthYear = dayMonthYear;
-        });
-
-        // Add horizontal line through all timelines
-        const firstDot = document.querySelector(".event-dot");
-        const firstDotLeft = firstDot ? firstDot.getBoundingClientRect().left - timelineContainer.getBoundingClientRect().left : 0;
-        const horizontalLine = createHorizontalLine(firstDotLeft);
-        timelineContainer.appendChild(horizontalLine);
-
-        // After generating all the flags, we check for overlaps
-        setTimeout(checkFlagOverlaps, 100); // Add a small delay before checking overlaps
-    })
-    .catch(error => console.error('Error generating aikajana timeline:', error));
-}
-
-// Add a gap indicator for years with a gap in between
+// Lisää väli-indikaattori vuosille, joissa on väliä
 function addGapIndicator(container, gapYears) {
     const gapIndicator = document.createElement("div");
     gapIndicator.className = "gap-indicator";
@@ -255,24 +170,22 @@ function addGapIndicator(container, gapYears) {
     container.appendChild(gapIndicator);
 }
 
-// Create and return a container for each year with its events
+// Luo ja palauta kontti jokaiselle vuodelle sen tapahtumien kanssa
 function createYearContainer(year) {
     const yearContainer = document.createElement("div");
     yearContainer.className = "year-container";
 
     const yearDiv = document.createElement("div");
-    
-
     yearContainer.appendChild(yearDiv);
     return yearContainer;
 }
 
-// Create the timeline for a specific year, including event markers and flags
+// Luo aikajana tietylle vuodelle, mukaan lukien tapahtumamerkit ja liput
 function createTimelineDiv(events, isRed, year) {
     const timelineDiv = document.createElement("div");
     timelineDiv.className = "timeline";
 
-    // Sort events by month and create their markers
+    // Lajittele tapahtumat kuukauden mukaan ja luo niiden merkit
     events.sort((a, b) => a.month - b.month).forEach((event) => {
         const eventDot = createEventDot(event, isRed, year);
         const flag = createEventFlag(event, isRed);
@@ -280,13 +193,13 @@ function createTimelineDiv(events, isRed, year) {
         timelineDiv.appendChild(eventDot);
         timelineDiv.appendChild(flag);
 
-        isRed = !isRed; // Toggle color for next event
+        isRed = !isRed; // Vaihda väri seuraavalle tapahtumalle
     });
 
     return timelineDiv;
 }
 
-// Create a dot representing an event on the timeline
+// Luo piste, joka edustaa tapahtumaa aikajanalla
 function createEventDot(event, isRed, year) {
     const eventDot = document.createElement("div");
     eventDot.className = "event-dot";
@@ -296,39 +209,39 @@ function createEventDot(event, isRed, year) {
     eventDot.style.backgroundColor = dotColor;
     eventDot.style.left = `${(event.month / 12) * 100}%`;
 
-    // Add the year as text inside the dot
+    // Lisää vuosi tekstinä pisteen sisälle
     eventDot.innerText = year;
 
-    // Create the line above the dot
+    // Luo viiva pisteen yläpuolelle
     const eventLine = document.createElement("div");
     eventLine.className = "event-line";
     eventLine.style.backgroundColor = dotColor;
 
-    eventDot.appendChild(eventLine); // Attach line to dot
+    eventDot.appendChild(eventLine); // Kiinnitä viiva pisteeseen
 
     return eventDot;
 }
 
-// Create the flag for an event, which includes a title and description
+// Luo tapahtuman lippu, joka sisältää otsikon ja kuvauksen
 function createEventFlag(event, isRed) {
     const flag = document.createElement("div");
     flag.className = "flag";
     flag.style.setProperty('--border-color', isRed ? "#FF5733" : "#3357FF");
-    flag.style.position = "absolute";  // Ensure absolute positioning for moving
+    flag.style.position = "absolute";  // Varmista absoluuttinen sijainti siirtämistä varten
 
     const title = document.createElement("div");
     title.className = "flag-title";
-    title.innerText = `${formatDate(new Date(event.date))} ${event.name}`; // Combine date and description
+    title.innerText = `${formatDate(new Date(event.date))} ${event.name}`; // Yhdistä päivämäärä ja kuvaus
 
     flag.appendChild(title);
 
     flag.style.left = `${(event.month / 12) * 100}%`;
-    flag.style.top = "-50px"; // Set a fixed top position
+    flag.style.top = "-50px"; // Aseta kiinteä yläasento
 
-    // Add event card
+    // Lisää tapahtumakortti
     const card = addEventCard(event);
 
-    // Add click event to highlight the corresponding card
+    // Lisää klikkaustapahtuma korostamaan vastaavaa korttia
     flag.addEventListener("click", () => {
         highlightCard(card);
     });
@@ -336,7 +249,7 @@ function createEventFlag(event, isRed) {
     return flag;
 }
 
-// Add an event card to the event cards container
+// Lisää tapahtumakortti tapahtumakorttien konttiin
 function addEventCard(event) {
     const eventCardsContainer = document.getElementById("event-cards");
 
@@ -359,91 +272,91 @@ function addEventCard(event) {
     return card;
 }
 
-// Highlight the corresponding card
+// Korosta vastaava kortti
 function highlightCard(card) {
-    // Remove highlight from all cards
+    // Poista korostus kaikista korteista
     const cards = document.querySelectorAll(".event-card");
     cards.forEach(c => c.classList.remove("highlight"));
 
-    // Add highlight to the selected card
+    // Lisää korostus valittuun korttiin
     card.classList.add("highlight");
 
-    // Scroll the card into view
+    // Vieritä kortti näkyviin
     card.scrollIntoView({ behavior: 'smooth', block: 'center' });
 }
 
-// Create the horizontal line that spans through all years in the timeline
+// Luo vaakasuora viiva, joka ulottuu kaikkien vuosien läpi aikajanalla
 function createHorizontalLine(firstDotLeft) {
     const line = document.createElement("div");
     line.className = "horizontal-line";
-    line.style.left = `${firstDotLeft}px`; // Start at the first event dot
+    line.style.left = `${firstDotLeft}px`; // Aloita ensimmäisestä tapahtumapisteestä
     return line;
 }
 
-// Function to check for flag overlaps and adjust their positions to avoid overlap
+// Funktio tarkistaa lippujen päällekkäisyydet ja säätää niiden sijainteja välttääkseen päällekkäisyyksiä
 function checkFlagOverlaps() {
     const flags = document.querySelectorAll(".flag");
     let maxHeight = 0;
 
-    // Loop through each flag to check overlaps
+    // Käy läpi jokainen lippu tarkistaaksesi päällekkäisyydet
     for (let i = 0; i < flags.length; i++) {
         for (let j = i + 1; j < flags.length; j++) {
             const flag1 = flags[i];
             const flag2 = flags[j];
 
-            // Use getBoundingClientRect to get the positions of the flags
+            // Käytä getBoundingClientRect saadaksesi lippujen sijainnit
             const rect1 = flag1.getBoundingClientRect();
             const rect2 = flag2.getBoundingClientRect();
 
-            // Check if the flags overlap
+            // Tarkista, menevätkö liput päällekkäin
             if (rect1.left < rect2.right && rect1.right > rect2.left &&
                 rect1.top < rect2.bottom && rect1.bottom > rect2.top) {
 
-                // If there's an overlap, move the first flag upwards by its height plus 1px to avoid overlap
+                // Jos on päällekkäisyyttä, siirrä ensimmäistä lippua ylöspäin sen korkeuden verran plus 1px välttääksesi päällekkäisyyden
                 const offset = rect1.bottom - rect2.top + 1;
                 adjustFlagPosition(flag1, offset);
 
-                // Recheck overlap after moving
+                // Tarkista päällekkäisyys uudelleen siirron jälkeen
                 checkFlagOverlaps();
-                return; // Stop recursion
+                return; // Lopeta rekursio
             }
         }
 
-        // Update the maximum height
+        // Päivitä maksimikorkeus
         const flagRect = flags[i].getBoundingClientRect();
         if (flagRect.bottom > maxHeight) {
             maxHeight = flagRect.bottom;
         }
     }
 
-    // Adjust the height of the timeline container
+    // Säädä aikajanakontin korkeus
     const timelineContainer = document.getElementById("timeline-container");
-    timelineContainer.style.height = `${maxHeight + 20}px`; // Add some padding
+    timelineContainer.style.height = `${maxHeight + 20}px`; // Lisää hieman pehmustetta
 
-    // Ensure the whole timeline is visible
+    // Varmista, että koko aikajana on näkyvissä
     timelineContainer.scrollIntoView({ behavior: 'smooth', block: 'end' });
 }
 
-// Helper function to adjust flag position upwards
+// Apufunktio lippujen sijainnin säätämiseen ylöspäin
 function adjustFlagPosition(flag, offset) {
-    let newTop = parseInt(flag.style.top || 0) - offset; // Move the flag upwards by the offset
+    let newTop = parseInt(flag.style.top || 0) - offset; // Siirrä lippua ylöspäin offsetin verran
     flag.style.top = newTop + "px";
 
-    // Update the event line height and position
+    // Päivitä tapahtumaviivan korkeus ja sijainti
     const eventDot = flag.previousElementSibling;
     const eventLine = eventDot.querySelector(".event-line");
     if (eventLine) {
         const dotRect = eventDot.getBoundingClientRect();
         const flagRect = flag.getBoundingClientRect();
-        const newHeight = dotRect.top - flagRect.top - 5; // Adjust for new padding
+        const newHeight = dotRect.top - flagRect.top - 5; // Säädä uuteen pehmusteeseen
         eventLine.style.height = `${newHeight}px`;
-        eventLine.style.top = `${-newHeight}px`; // Move the event line up
+        eventLine.style.top = `${-newHeight}px`; // Siirrä tapahtumaviivaa ylöspäin
     }
-    // Print to console when a flag is moved
+    // Tulosta konsoliin, kun lippua on siirretty
     console.log(`Moved flag to top: ${flag.style.top}`);
 }
 
-// Helper function to check if two flags overlap
+// Apufunktio tarkistaa, menevätkö kaksi lippua päällekkäin
 function checkOverlap(flag1, flag2) {
     const rect1 = flag1.getBoundingClientRect();
     const rect2 = flag2.getBoundingClientRect();
@@ -452,22 +365,22 @@ function checkOverlap(flag1, flag2) {
            rect1.top < rect2.bottom && rect1.bottom > rect2.top;
 }
 
-// Function to toggle dark mode
+// Funktio vaihtaa tumma tila päälle ja pois
 function toggleDarkMode() {
     document.body.classList.toggle("dark-mode");
 }
 
-// Function to generate a timeline from chat message events
+// Funktio generoi aikajanan chat-viestien tapahtumista
 function generateTimelineFromChat(events) {
     const timelineContainer = document.getElementById("timeline-container");
     const eventCardsContainer = document.getElementById("event-cards");
-    timelineContainer.innerHTML = ""; // Clear previous events
-    eventCardsContainer.innerHTML = ""; // Clear previous event cards
-    timelineContainer.style.height = "auto"; // Reset height
+    timelineContainer.innerHTML = ""; // Tyhjennä aiemmat tapahtumat
+    eventCardsContainer.innerHTML = ""; // Tyhjennä aiemmat tapahtumakortit
+    timelineContainer.style.height = "auto"; // Nollaa korkeus
 
     const eventsByDayMonthYear = {};
 
-    // Group events by day, month, and year
+    // Ryhmittele tapahtumat päivän, kuukauden ja vuoden mukaan
     events.forEach(event => {
         const eventDate = new Date(event.date);
         const year = eventDate.getFullYear();
@@ -479,7 +392,7 @@ function generateTimelineFromChat(events) {
         }
         eventsByDayMonthYear[dayMonthYear].push({
             name: event.description,
-            date: event.date, // Ensure date is set
+            date: event.date, // Varmista, että päivämäärä on asetettu
             month: month,
             day: day
         });
@@ -490,12 +403,12 @@ function generateTimelineFromChat(events) {
     let previousDayMonthYear = sortedDayMonthYears[0];
     let isRed = true;
 
-    // Calculate the date range for zooming
+    // Laske päivämääräväli zoomausta varten
     const firstDate = new Date(sortedDayMonthYears[0]);
     const lastDate = new Date(sortedDayMonthYears[sortedDayMonthYears.length - 1]);
     const totalDays = (lastDate - firstDate) / (1000 * 60 * 60 * 24);
 
-    // Iterate over day-month-years to create event markers and flags
+    // Iteroi päivä-kuukausi-vuosien yli luodaksesi tapahtumamerkit ja liput
     sortedDayMonthYears.forEach((dayMonthYear, index) => {
         const [year, month, day] = dayMonthYear.split('-').map(Number);
         const previousYear = parseInt(previousDayMonthYear.split('-')[0]);
@@ -507,7 +420,7 @@ function generateTimelineFromChat(events) {
         const yearContainer = createYearContainer(year);
         const timelineDiv = createTimelineDiv(eventsByDayMonthYear[dayMonthYear], index % 2 === 0, year);
 
-        // Adjust the width of the timelineDiv based on the totalDays
+        // Säädä timelineDiv:n leveys perustuen totalDays-arvoon
         timelineDiv.style.width = `${(100 / totalDays) * (day - firstDate.getDate() + 1)}%`;
 
         yearContainer.appendChild(timelineDiv);
@@ -516,17 +429,17 @@ function generateTimelineFromChat(events) {
         previousDayMonthYear = dayMonthYear;
     });
 
-    // Add horizontal line through all timelines
+    // Lisää vaakasuora viiva kaikkien aikajanojen läpi
     const firstDot = document.querySelector(".event-dot");
     const firstDotLeft = firstDot ? firstDot.getBoundingClientRect().left - timelineContainer.getBoundingClientRect().left : 0;
     const horizontalLine = createHorizontalLine(firstDotLeft);
     timelineContainer.appendChild(horizontalLine);
 
-    // After generating all the flags, we check for overlaps
-    setTimeout(checkFlagOverlaps, 100); // Add a small delay before checking overlaps
+    // Kun kaikki liput on luotu, tarkista päällekkäisyydet
+    setTimeout(checkFlagOverlaps, 100); // Lisää pieni viive ennen päällekkäisyyksien tarkistamista
 }
 
-// Function to handle chat input and send messages
+// Funktio käsittelee chat-syötteen ja lähettää viestit
 document.addEventListener("DOMContentLoaded", () => {
     const chatButton = document.getElementById("chat-send");
     const chatInput = document.getElementById("chat-input");
@@ -551,12 +464,15 @@ document.addEventListener("DOMContentLoaded", () => {
             .then(data => {
                 const botMessage = document.createElement("div");
                 botMessage.className = "chat-message bot";
-                botMessage.textContent = data.answer;
 
                 // Check if the response contains events
                 try {
-                    const events = JSON.parse(data.answer).timeline;
+                    const responseData = JSON.parse(data.answer);
+                    const events = responseData.timeline;
                     if (events) {
+                        const readableMessage = events.map(event => `${formatDate(new Date(event.date))}: ${event.description}`).join('\n');
+                        botMessage.textContent = readableMessage;
+
                         const buttonContainer = document.createElement("div");
                         buttonContainer.className = "chat-message bot";
 
@@ -569,10 +485,12 @@ document.addEventListener("DOMContentLoaded", () => {
                         chatBox.appendChild(botMessage);
                         chatBox.appendChild(buttonContainer);
                     } else {
+                        botMessage.textContent = data.answer;
                         chatBox.appendChild(botMessage);
                     }
                 } catch (e) {
                     console.error('Response does not contain events:', e);
+                    botMessage.textContent = data.answer;
                     chatBox.appendChild(botMessage);
                 }
 
@@ -584,94 +502,13 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     });
 
-    const generateAikajanaButton = document.getElementById("generate-aikajana");
-    generateAikajanaButton.addEventListener("click", generateAikajanaTimeline);
+    // Kutsu funktiota tarkistaaksesi päällekkäisyydet
+    document.addEventListener("DOMContentLoaded", () => {
+        checkFlagOverlaps();
+    });
 });
 
-// Call the function to check for overlaps
+// Kutsu funktiota tarkistaaksesi päällekkäisyydet
 document.addEventListener("DOMContentLoaded", () => {
     checkFlagOverlaps();
 });
-
-function generateAikajanaFromAPI() {
-    fetch('/api/timeline', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        }
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (!data.timeline) {
-            console.error('Timeline data is undefined');
-            return;
-        }
-
-        const timelineContainer = document.getElementById("timeline-container");
-        const eventCardsContainer = document.getElementById("event-cards");
-        timelineContainer.innerHTML = ""; // Clear previous events
-        eventCardsContainer.innerHTML = ""; // Clear previous event cards
-        timelineContainer.style.height = "auto";
-        const events = data.timeline;
-        const eventsByDayMonthYear = {};
-
-        // Group events by day, month, and year
-        events.forEach(event => {
-            const eventDate = new Date(event.date);
-            const year = eventDate.getFullYear();
-            const month = eventDate.getMonth();
-            const day = eventDate.getDate();
-            const dayMonthYear = formatDate(eventDate);
-            if (!eventsByDayMonthYear[dayMonthYear]) {
-                eventsByDayMonthYear[dayMonthYear] = [];
-            }
-            eventsByDayMonthYear[dayMonthYear].push({
-                name: event.description,
-                date: event.date, // Ensure date is set
-                month: month,
-                day: day
-            });
-        });
-
-        const sortedDayMonthYears = Object.keys(eventsByDayMonthYear).sort();
-
-        let previousDayMonthYear = sortedDayMonthYears[0];
-        let isRed = true;
-
-        // Calculate the date range for zooming
-        const firstDate = new Date(sortedDayMonthYears[0]);
-        const lastDate = new Date(sortedDayMonthYears[sortedDayMonthYears.length - 1]);
-        const totalDays = (lastDate - firstDate) / (1000 * 60 * 60 * 24);
-
-        // Iterate over day-month-years to create event markers and flags
-        sortedDayMonthYears.forEach((dayMonthYear, index) => {
-            const [year, month, day] = dayMonthYear.split('-').map(Number);
-            const previousYear = parseInt(previousDayMonthYear.split('-')[0]);
-
-            if (year - previousYear > 1) {
-                addGapIndicator(timelineContainer, year - previousYear - 1);
-            }
-
-            const yearContainer = createYearContainer(year);
-            const timelineDiv = createTimelineDiv(eventsByDayMonthYear[dayMonthYear], index % 2 === 0, year);
-
-            // Adjust the width of the timelineDiv based on the totalDays
-            timelineDiv.style.width = `${(100 / totalDays) * (day - firstDate.getDate() + 1)}%`;
-
-            yearContainer.appendChild(timelineDiv);
-            timelineContainer.appendChild(yearContainer);
-
-            previousDayMonthYear = dayMonthYear;
-        });
-
-        // Add horizontal line through all timelines
-        const firstDot = document.querySelector(".event-dot");
-        const firstDotLeft = firstDot ? firstDot.getBoundingClientRect().left - timelineContainer.getBoundingClientRect().left : 0;
-        const horizontalLine = createHorizontalLine(firstDotLeft);
-        timelineContainer.appendChild(horizontalLine);
-
-        // After generating all the flags, we check for overlaps
-        setTimeout(checkFlagOverlaps, 100); // Add a small delay before checking overlaps
-    })
-    .catch(error => console.error('Error generating aikajana timeline:', error));
-}
