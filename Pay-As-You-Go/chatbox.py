@@ -32,21 +32,15 @@ def process_search_results(results):
     )
 
 def get_prompt(prompts, prompt_type, context, user_input):
-    prompt = {
-        "role": "system",
-        "content": (
-            "Olet avulias ja tarkka assistentti, joka käsittelee suomeksi vain ja ainoastaan annettua asiakastietoa. "
-            "Älä keksi omia tietoja. Määrittele mikä on merkitsevää elämäntapahtumaa. "
-            "Muotoile vastausta kolmella sanalla. "
-            "Laajenna datan hakua siten, että saamme joka vuodelta vähintään yhden merkitsevän elämäntapahtuman."
-            "Vastaa kysymykseen annetun kontekstin perusteella seuraavassa muodossa: {\"timeline\": [{\"date\": \"Päivämäärä\", \"description\": \"Tapahtuma\"}"
-        )
-    }
-    user_message = {
-        "role": "user",
-        "content": f"Konteksti:\n{context}\n\nKysymys: {user_input}\n\nVastaa mahdollisimman tarkasti."
-    }
-    return [prompt, user_message]
+    prompt_template = prompts.get(prompt_type, prompts["default"])
+    prompt_messages = []
+    
+    for message in prompt_template:
+        role = message["role"]
+        content = message["content"].replace("{context}", context).replace("{user_input}", user_input)
+        prompt_messages.append({"role": role, "content": content})
+    
+    return prompt_messages
 
 def get_chat_response(messages, azure_oai_endpoint, azure_oai_key, azure_oai_deployment):
     try:
@@ -58,7 +52,7 @@ def get_chat_response(messages, azure_oai_endpoint, azure_oai_key, azure_oai_dep
         response = openai.ChatCompletion.create(
             engine=azure_oai_deployment,
             messages=messages,
-            max_tokens=500,
+            max_tokens=700,
             temperature=0.2  # Pienempi lämpötila tarkempia vastauksia varten
         )
         response_content = response['choices'][0]['message']['content'].strip()
@@ -66,6 +60,21 @@ def get_chat_response(messages, azure_oai_endpoint, azure_oai_key, azure_oai_dep
         # Return the response content directly
         return response_content
 
+    except Exception as ex:
+        raise ValueError(f"Virhe OpenAI:n käsittelyssä: {ex}")
+
+def embed_user_input(user_input, azure_oai_endpoint, azure_oai_key, azure_oai_embedding_deployment):
+    try:
+        openai.api_type = "azure"
+        openai.api_key = azure_oai_key
+        openai.api_base = azure_oai_endpoint
+        openai.api_version = "2024-08-01-preview"
+
+        response = openai.Embedding.create(
+            engine=azure_oai_embedding_deployment,
+            input=user_input
+        )
+        return response['data'][0]['embedding']
     except Exception as ex:
         raise ValueError(f"Virhe OpenAI:n käsittelyssä: {ex}")
 
@@ -77,6 +86,7 @@ def rag_chat(question):
         azure_oai_endpoint = os.getenv("AZURE_OAI_ENDPOINT")
         azure_oai_key = os.getenv("AZURE_OAI_KEY")
         azure_oai_deployment = os.getenv("AZURE_OAI_DEPLOYMENT")
+        azure_oai_embedding_deployment = os.getenv("AZURE_OAI_EMBEDDING_DEPLOYMENT")
         azure_search_index = os.getenv("AZURE_SEARCH_INDEX")
         azure_search_endpoint = os.getenv("AZURE_SEARCH_ENDPOINT")
         azure_search_api_key = os.getenv("AZURE_SEARCH_API_KEY")
@@ -88,11 +98,23 @@ def rag_chat(question):
         # Käyttäjän syöte
         user_input = question
 
+        # Embed the user's input
+        user_embedding = embed_user_input(user_input, azure_oai_endpoint, azure_oai_key, azure_oai_embedding_deployment)
+
         # Haku Azure Cognitive Searchissa
         search_client = SearchClient(endpoint=azure_search_endpoint,
                                      index_name=azure_search_index,
                                      credential=AzureKeyCredential(azure_search_api_key))
-        search_query = {"queryType": "simple", "search": user_input, "searchMode": "all"}
+        search_query = {
+            "queryType": "simple",
+            "search": user_input,
+            "searchMode": "all",
+            "vector": {
+                "value": user_embedding,
+                "fields": ["content_vector"],
+                "k": 10
+            }
+        }
         results = search_client.search(search_query)
 
         # Käsittele hakutulokset
@@ -112,4 +134,3 @@ def rag_chat(question):
 if __name__ == "__main__":
     question = input("Kirjoita kysymys: ")
     response = rag_chat(question)
-    print("Vastaus:", response)

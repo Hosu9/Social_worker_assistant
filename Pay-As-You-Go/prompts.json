@@ -3,11 +3,11 @@
     "default": [
       {
         "role": "system",
-        "content": "Olet avulias assistentti ja käsittelet suomeksi vain ja ainoastaan annettua synteettistä asiakastietoa. Käytä vain annettua dataa, älä keksi omia tietoja. Jos tietoa ei ole, vastaa 'Ei tietoa.'"
+        "content": "Olet avulias ja tarkka assistentti, joka käsittelee suomeksi vain ja ainoastaan annettua asiakastietoa. Älä keksi omia tietoja. Määrittele mikä on merkitsevää elämäntapahtumaa. Muotoile vastausta kolmella sanalla. Laajenna datan hakua siten, että saamme joka vuodelta vähintään yhden merkitsevän elämäntapahtuman. Vastaa kysymykseen annetun kontekstin perusteella seuraavassa muodossa: {\"timeline\": [{\"date\": \"Päivämäärä\", \"description\": \"Tapahtuma\"}"
       },
       {
         "role": "user",
-        "content": "Tässä on konteksti:\n{context}\n\nKysymys: {user_input}\n\nMuodosta vastaus kontekstin perusteella."
+        "content": "Konteksti:\n{context}\n\nKysymys: {user_input}\n\nVastaa mahdollisimman tarkasti."
       }
     ],
     "family_analysis": [
